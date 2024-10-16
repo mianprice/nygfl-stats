@@ -1,0 +1,14 @@
+{
+  "name": "nygfl-stats",
+  "version": "1.0.0",
+  "description": "parses/summarizes stats from from form submissions (in csv form)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "csv-transpose": "^1.2.0"
+  }
+}
