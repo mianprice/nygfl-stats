@@ -14,8 +14,8 @@ const results = {
 const resultsMap = {
     "Number of QB touchdowns (throwing or rushing) ": "QB TDs",
     "Number of touchdowns per player (non-QB): ": "Non-QB TDs",
-    "Successful Point After Conversions (1 or 2): ": "Interceptions",
-    "Number of interceptions per player: ": "XP Conversions",
+    "Successful Point After Conversions (1 or 2): ": "XP Conversions",
+    "Number of interceptions per player: ": "Interceptions",
     "Number of sacks per player: ": "Sacks"
 };
 
