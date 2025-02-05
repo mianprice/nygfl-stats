@@ -4,22 +4,26 @@ CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     email TEXT,
-    phone TEXT
+    phone TEXT,
+    createdAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 CREATE TABLE seasons (
     season_id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL
+    name TEXT NOT NULL,
+    createdAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 CREATE TABLE teams (
     team_id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     captain INTEGER NOT NULL REFERENCES users (user_id),
-    season_id INTEGER REFERENCES seasons
+    season_id INTEGER REFERENCES seasons,
+    createdAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 CREATE TABLE players (
     player_id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users,
-    team_id INTEGER REFERENCES teams
+    team_id INTEGER REFERENCES teams,
+    createdAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 CREATE TABLE reports (
     report_id SERIAL PRIMARY KEY,
