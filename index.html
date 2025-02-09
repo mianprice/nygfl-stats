@@ -56,7 +56,7 @@
             flex-wrap: wrap;
             justify-content: space-around;
             flex-direction: vertical;
-            border: thick green solid;
+            border: 3px green solid;
         }
 
         .v-row {
@@ -64,7 +64,7 @@
             justify-content: space-around;
             flex-direction: horizontal;
             min-height: 5vh;
-            border: thick red solid;
+            border: 3px red solid;
             width: 100%;
             padding: 0 5vw;
         }
@@ -83,7 +83,7 @@
             min-height: 5vh;
             min-width: 10vw;
             padding: 5px;
-            border: thick purple solid;
+            border: 3px purple solid;
         }
         
         .edit-interface {
@@ -92,7 +92,13 @@
         }
 
         .link {
-            border: thick blue solid
+            border: 3px blue solid;
+            border-radius: 10%;
+            cursor: pointer;
+        }
+
+        .link:hover {
+            border: 3px 
         }
 
         .hidden {
@@ -103,23 +109,10 @@
 <body>
     <header>
         <h1>NYGFL Stats Interface</h1>
-        <div class="toolbar">
-            <!-- <button id="clearButton">Clear</button>
-            <button id="submitButton">Submit</button> -->
-        </div>
+        <h6>michael.ian.price@gmail.com</h6>
+        <section id="login" class="toolbar v-row"></section>
     </header>
 
-    <!-- begin body templates -->
-    <section id="login">
-        <input type="email" name="email" id="email">
-        <select name="user" id="user_input">
-            <option value="team" selected disabled>User</option>
-        </select>
-        <select name="team" id="team">
-            <option value="team" selected disabled>Team</option>
-            <!-- inject teams from structured data here -->
-        </select>
-    </section>
     <section id="player" class="v-table">
         <div class="v-row v-table-header">
             <div class="v-item" data-prop="name">name</div>
@@ -170,7 +163,7 @@
             <div class="v-item" data-prop="stat_id">stat_id</div>
         </div>
         <div class="edit-interface v-row">
-            <select name="type" id="type">
+            <select name="type" id="stat_type">
                 <option value="type" selected disabled>Stat Type</option>
                 <option value="pass_td">Pass TD</option>
                 <option value="rush_td">Rushing TD</option>
@@ -178,12 +171,12 @@
                 <option value="interception">Interception</option>
                 <option value="sack">Sack</option>
             </select>
-            <input placeholder="#" type="number" name="number" min="0" id="number">
-            <select name="player" id="player">
+            <input placeholder="#" type="number" name="number" min="0" id="stat_count">
+            <select name="player" id="stat_player">
                 <option value="player" selected disabled>--</option>
                 <!-- inject players from structured data based on team here -->
             </select>
-            <input type="button" value="Add" id="add" disabled>
+            <input type="button" value="Add" id="stat_add" disabled>
         </div>
     </section>
     <section id="report" class="v-table">
@@ -226,14 +219,25 @@
     <input type="text" name="req_path" id="req_path">
     <textarea name="req_body" id="req_body" cols="30" rows="10"></textarea>
     <input type="button" value="Send Request" id="req_send">
-    <!-- <script>window.teams = {"Boxers":{"players":[{"name":"Adam Connaker"},{"name":"Anthony Easter"},{"name":"Chris Magoo"},{"name":"Christopher Hernandez"},{"name":"Gaurav Shrivastav"},{"name":"Jamar Wilson"},{"name":"Jordan Hamilton"},{"name":"Justin Bauer"},{"name":"Karl Martin"},{"name":"Kiyon Spencer"},{"name":"Maximilliam Cabrera"},{"name":"PJ Linen"},{"name":"Sean Simpson"}]},"Dickens":{"players":[{"name":"Abdu Hytrek"},{"name":"Adam Marciano"},{"name":"Alex Drakos"},{"name":"Alex Palombo"},{"name":"Andrew Simpson"},{"name":"Brad Becton"},{"name":"Domenico Aiello"},{"name":"Gabriel McClary"},{"name":"Joseph Huntenburg"},{"name":"Matthew Wessler"},{"name":"Regan McKendry"},{"name":"Robert Olson"},{"name":"Timothy Hart"}]},"Eagle":{"players":[{"name":"Ali Reza"},{"name":"Bryan Headley"},{"name":"Bryan Mullen"},{"name":"James Conheeney"},{"name":"James Valentin"},{"name":"Joseph Schafer"},{"name":"Kevin Westerman"},{"name":"Michael Castor"},{"name":"Monty Clinton"},{"name":"Robert D'Agostino"},{"name":"Sean Holihan"},{"name":"Terrell Bostic"},{"name":"Timothy Dembo"}]},"Elevated Health":{"players":[{"name":"Aiden Lynds"},{"name":"Alan Cannon"},{"name":"Chris Wojton"},{"name":"Eric Shull"},{"name":"Griffin Joslin"},{"name":"Kevin Roth"},{"name":"Marco Lumapas"},{"name":"Michael BRANCH"},{"name":"Paul Jung"},{"name":"Quincey Wilson"},{"name":"Ron Alexander"},{"name":"Twan Claiborne"},{"name":"William Martin"}]},"Flex":{"players":[{"name":"Alec Hynes"},{"name":"Amit Anandwala"},{"name":"Brendan Carroll"},{"name":"Bronson Johnson"},{"name":"Daniel Brennan"},{"name":"Edwin Henry"},{"name":"Jack OBrien"},{"name":"Jeremy Grompone"},{"name":"Jesse Schulman"},{"name":"Norman Piasecki"},{"name":"Riley Anheluk"},{"name":"Sean Schroder"},{"name":"William Lipovsky"}]},"Gym Bar":{"players":[{"name":"Alex Wilde"},{"name":"Antonio Carratelli"},{"name":"Austin Ostro"},{"name":"Eddie Doherty"},{"name":"Jase Calomadre"},{"name":"John Balash"},{"name":"Patrick Elliott"},{"name":"Patrick LaRocque"},{"name":"Richard Davis"},{"name":"Samuel Pelissero"},{"name":"Scott Bromschwig"},{"name":"Thomas Garza"},{"name":"Tye Javorek"}]},"Hardware":{"players":[{"name":"Alex Van Pelt"},{"name":"Alfonso Sanchez"},{"name":"Dan Smith"},{"name":"David Tawil"},{"name":"Jorge Mitssunaga"},{"name":"Kyle Paxman"},{"name":"Nick Krekeler"},{"name":"Robert Closs"},{"name":"stephan benjamin"},{"name":"Steven Gong"},{"name":"Steven Tedaldi"},{"name":"Will Blyth"}]},"Hush":{"players":[{"name":"Christian Sutton"},{"name":"Connor Thorpe"},{"name":"Dylan Gordon"},{"name":"Eric Schwartz"},{"name":"Jaime Baez"},{"name":"Jarrell Canty"},{"name":"Jerry Xiao"},{"name":"Libby Fender"},{"name":"Paul Taylor"},{"name":"Peter Geithner"},{"name":"Piper Styles"},{"name":"Rush Milne"},{"name":"Steven Rubin"}]},"Industry":{"players":[{"name":"Abdullah Bardak"},{"name":"Adrion Smooth"},{"name":"Alberto Altamirano"},{"name":"Darren Major"},{"name":"Justin Friedman-Hurvitz"},{"name":"Kristopher Burrell"},{"name":"Kyaire Wynn"},{"name":"Manny Guerrero"},{"name":"Nico Pelaschier"},{"name":"Patrick Coker"},{"name":"Paul Kuhnle"},{"name":"Sean M Dalton"},{"name":"William Cuellar"}]},"Playhouse":{"players":[{"name":"Ciaran Reidy"},{"name":"Daniel Miller"},{"name":"Danny Fan"},{"name":"Darren Brown"},{"name":"Drew Carr"},{"name":"Duane Griffith"},{"name":"Fernando Zaragoza"},{"name":"Grady Schutt 07"},{"name":"Joshua Smalley"},{"name":"Keenan McAuliffe"},{"name":"Michael Mogavero"},{"name":"Peter Demoise"},{"name":"Steven Grant"}]},"Red Stache":{"players":[{"name":"Anthony DErrico"},{"name":"Christian Vazquez"},{"name":"Christopher Scalone"},{"name":"David Booth"},{"name":"Eric Lippin"},{"name":"James Riedel"},{"name":"John McAllister"},{"name":"Jonathan Fitzgerald"},{"name":"Jordan Lockett"},{"name":"Jordan Taylor"},{"name":"Max Italiaander"},{"name":"Michael McAree"},{"name":"Tejesh Patel"}]},"Rise":{"players":[{"name":"Ari Pena"},{"name":"Brendan McCullagh"},{"name":"Daniel Lofrese"},{"name":"Ian Price"},{"name":"Marissa Ware"},{"name":"Max Corrales"},{"name":"Menachem Freeman"},{"name":"Mitch Scuzzarella"},{"name":"Nick Brenner"},{"name":"Parker Unruh"},{"name":"Scott Olivo"},{"name":"Thomas McNamara"},{"name":"Tyler Comas"}]},"Rockbar":{"players":[{"name":"Adam Robbins"},{"name":"Bryan Valerio"},{"name":"Bryce Tapscott"},{"name":"Edward Lee"},{"name":"Gregory Romer"},{"name":"Hajir Dilmanian"},{"name":"Ian Donovan"},{"name":"Jared Reyes"},{"name":"Kevin Garcia"},{"name":"Nicholas Pei"},{"name":"Pablo Heredia"},{"name":"Patrick Maiden"},{"name":"Robert Smith"}]},"Stonewall":{"players":[{"name":"Charles Maher"},{"name":"Connor Cyrus"},{"name":"Deane Sullivan"},{"name":"Dennis Michel"},{"name":"Donald Vinson"},{"name":"Jack Lamb"},{"name":"Jerrell Price"},{"name":"Kameron Serrano"},{"name":"Matthew Benemerito"},{"name":"Matthew Macca"},{"name":"Michael Giuggio"},{"name":"Nicolas Casaula"},{"name":"Victor Ortiz"}]},"Vers":{"players":[{"name":"Andom Ghebreghiorgis"},{"name":"Andre Vasilyev"},{"name":"Brinton Williams"},{"name":"Bryan Ortiz-VanEvery"},{"name":"Deej Johnson"},{"name":"Jake Snyder"},{"name":"Jeff Dingfelder"},{"name":"John Paul Detty"},{"name":"Joseph Curry"},{"name":"Michael DiCaro"},{"name":"Michael Orlando"},{"name":"Michael Wellbrock"},{"name":"Seb Emin"}]},"Vice Versa":{"players":[{"name":"Augusto Penaranda"},{"name":"Brian DeGrazia"},{"name":"Dan Dimant"},{"name":"Eric James"},{"name":"Frank Krumrie"},{"name":"Hector Garza"},{"name":"Jon Mark Ponder"},{"name":"Matt Broderick"},{"name":"Mike Conway"},{"name":"Rory Ray"},{"name":"Stephen Torres"},{"name":"Stuart Reichenberger"},{"name":"Vincent Maniscalco"}]}};</script> -->
     <script src="template.js"></script>
     <script src="client.js"></script>
 
     <script>
         // TODO set up data, then navigation, including collapse/expand/subview logic
-        // const initialData = await fetch('http://localhost:3001/users', options).then(response => response.json());
-        // attach('#user_input option', initialData.reduce());
+        const initialData = fetch('http://localhost:3001/users', { method: 'get' }).then(response => response.json()).then(json => {
+            const newMarkup = render({
+                view: 'user',
+                future: {
+                    users: json
+                }
+            });
+            attach('#user_input option', newMarkup);
+            console.log(newMarkup);
+        }).catch(e => {
+            console.error(e);
+        });
+
+        
     </script>
 </body>
 </html>

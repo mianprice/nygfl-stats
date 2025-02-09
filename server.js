@@ -1,6 +1,7 @@
 const pg = require('pg');
 const express = require('express');
 const path = require('node:path');
+const bodyParser = require('body-parser')
 
 
 const pool = new pg.Pool({
@@ -11,8 +12,14 @@ const pool = new pg.Pool({
     port: 5432, // Default PostgreSQL port
 });
 
-async function getUsers(id) {
-    const res = await pool.query(`SELECT * FROM users ${id ? `WHERE user_id = '${id}'` : ''}`);
+async function getUsers(args = {}) {
+    let q = 'SELECT * FROM users';
+    if (args.id) {
+        q += ` WHERE user_id = '${args.id}'`;
+    } else if (args.email) {
+        q += ` WHERE email = '${args.email}'`
+    }
+    const res = await pool.query(q);
     // console.log(res.rows);
     return res.rows;
 }
@@ -109,11 +116,20 @@ const mutator = {
 
 const server = express();
 const port = 3001;
+server.use(bodyParser.json())
+
 
 server.get('/data', async (req, res) => {
     const currentData = generateCache();
 
     res.json(currentData);
+});
+
+server.post('/login', async (req, res) => {
+    console.log(req.body);
+    if (req.body?.email) {
+        res.json(await getUsers({ email: req.body.email }));
+    }
 });
 
 server.route('/teams/:id?')
