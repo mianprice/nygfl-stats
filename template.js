@@ -126,9 +126,9 @@ async function render(data) {
             break;
         case 'login':
             selector = `#${data.view}`;
-            console.log(localStorage.logged_in);
+            console.log(JSON.parse(localStorage.getItem('current_user')));
             // prob email/phone + cookie
-            if (localStorage.logged_in === 'true' === 'true') {
+            if (localStorage.getItem('logged_in') === 'true') {
                 newHTML = `
                     <div class="v-item" id="username">${JSON.parse(localStorage.current_user).name}</div>
                     <input class="v-item" type="button" value="Logout" id="logout_button">
@@ -146,7 +146,7 @@ async function render(data) {
     // actually insert
     attach(data.action, selector, newHTML);
 
-
+    return;
 }
 
 // local data cache
@@ -171,6 +171,8 @@ window.stats_ui = {
     'state': { ...initialState },
     'reset': reset
 };
+
+/*
 
 render({
     action: 'replace',
@@ -276,6 +278,8 @@ render({
     }
 });
 
+*/
+
 
 
 
@@ -283,38 +287,47 @@ if (localStorage.getItem('logged_in') === 'true') {
     render({
         action: 'replace',
         view: 'login',
-        future: localStorage.current_user
-    });
-    document.querySelector('#logout_button').addEventListener('click', async e => {
-        delete localStorage.current_user;
-        delete localStorage.logged_in;
-        render({
-            action: 'replace',
-            view: 'login'
+        future: JSON.parse(localStorage.getItem('current_user'))
+    }).then(() => {
+        document.querySelector('#logout_button').addEventListener('click', async e => {
+            delete localStorage.current_user;
+            delete localStorage.logged_in;
+            render({
+                action: 'replace',
+                view: 'login'
+            });
         });
     });
+    
 } else {
     render({
         action: 'replace',
         view: 'login'
-    });
-    document.querySelector('#login_button').addEventListener('click', async e => {
-        // try to grab valid user
-        try {
-            const data = await postData(`/login`, { email: login_email.value });
-            console.log(data);
-            if (data.length > 0) {
-                localStorage.setItem('current_user', JSON.stringify(data[0]));
-                localStorage.setItem('logged_in', 'true');
-                render({
-                    action: 'replace',
-                    view: 'login',
-                    future: data[0]
-                });
+    }).then(() => {
+        document.querySelector('#login_button').addEventListener('click', async e => {
+            // try to grab valid user
+            try {
+                const data = await postData(`/login`, { email: login_email.value });
+                console.log(data);
+                if (data.length > 0) {
+                    localStorage.setItem('current_user', JSON.stringify(data[0]));
+                    localStorage.setItem('logged_in', 'true');
+                    render({
+                        action: 'replace',
+                        view: 'login',
+                        future: data[0]
+                    });
+                }
+            } catch (error) {
+                console.error(error);
             }
-        } catch (error) {
-            console.error(error);
-        }
+        });
+        document.querySelector('#login_email').addEventListener('change', e => {
+            console.log(login_email.value);
+            if (/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(login_email.value)) {
+                login_button.disabled = false;
+            }
+        });
     });
 }
 
@@ -322,12 +335,7 @@ if (localStorage.getItem('logged_in') === 'true') {
 
 
 
-document.querySelector('#login_email').addEventListener('change', e => {
-    console.log(login_email.value);
-    if (/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(login_email.value)) {
-        login_button.disabled = false;
-    }
-})
+
 
 async function postData(path, body_data) {
     console.log(body_data);

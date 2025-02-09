@@ -85,6 +85,16 @@
             padding: 5px;
             border: 3px purple solid;
         }
+
+        #login {
+            
+            justify-content: right;
+        }
+
+        #login .v-item {
+            min-height: 2vh;
+            margin: 0 1vw;
+        }
         
         .edit-interface {
             min-height: 5vh;
@@ -224,18 +234,18 @@
 
     <script>
         // TODO set up data, then navigation, including collapse/expand/subview logic
-        const initialData = fetch('http://localhost:3001/users', { method: 'get' }).then(response => response.json()).then(json => {
-            const newMarkup = render({
-                view: 'user',
-                future: {
-                    users: json
-                }
-            });
-            attach('#user_input option', newMarkup);
-            console.log(newMarkup);
-        }).catch(e => {
-            console.error(e);
-        });
+        // const initialData = fetch('http://localhost:3001/users', { method: 'get' }).then(response => response.json()).then(json => {
+        //     const newMarkup = render({
+        //         view: 'user',
+        //         future: {
+        //             users: json
+        //         }
+        //     });
+        //     attach('#user_input option', newMarkup);
+        //     console.log(newMarkup);
+        // }).catch(e => {
+        //     console.error(e);
+        // });
 
         
     </script>

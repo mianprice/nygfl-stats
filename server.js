@@ -24,6 +24,12 @@ async function getUsers(args = {}) {
     return res.rows;
 }
 
+async function getPermissions({ user_id }) {
+    const res = await pool.query(`SELECT * FROM permissions ${user_id ? `WHERE permissions.user_id = '${user_id}'` : ''}`);
+    console.log(`SELECT * FROM permissions ${user_id ? `WHERE permissions.user_id = '${user_id}'` : ''}`);
+    return res.rows;
+}
+
 async function getSeasons(id) {
     const res = await pool.query(`SELECT * FROM seasons ${id ? `WHERE season_id = '${id}'` : ''}`);
     // console.log(res.rows);
@@ -128,7 +134,12 @@ server.get('/data', async (req, res) => {
 server.post('/login', async (req, res) => {
     console.log(req.body);
     if (req.body?.email) {
-        res.json(await getUsers({ email: req.body.email }));
+        const users = await getUsers({ email: req.body.email });
+        const permissions = await getPermissions({ user_id: users[0].user_id });
+        res.json([{
+            ...users[0],
+            permissions
+        }]);
     }
 });
 

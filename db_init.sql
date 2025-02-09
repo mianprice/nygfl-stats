@@ -7,6 +7,12 @@ CREATE TABLE users (
     phone TEXT,
     createdAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
+CREATE TABLE permissions (
+    permission_id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users,
+    level TEXT,
+    createdAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
 CREATE TABLE seasons (
     season_id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
@@ -43,6 +49,8 @@ CREATE TABLE stats (
 INSERT INTO seasons (name) VALUES ('Fall 2024');
 INSERT INTO seasons (name) VALUES ('Sunshine Cup 2025');
 INSERT INTO seasons (name) VALUES ('Spring 2025');
+
+
 
 INSERT INTO users (name, email, phone) VALUES ('Adam Connaker','aconnaker@gmail.com','6125987136');
 INSERT INTO users (name, email, phone) VALUES ('Anthony Easter','aeaster2@fordham.edu','9512582697');
@@ -251,6 +259,28 @@ INSERT INTO users (name, email, phone) VALUES ('Rory Ray','roryray@roryray.com',
 INSERT INTO users (name, email, phone) VALUES ('Stephen Torres','stephenanthonytorres@gmail.com','9292920391');
 INSERT INTO users (name, email, phone) VALUES ('Stuart Reichenberger','sjreichenberger@gmail.com','3165009255');
 INSERT INTO users (name, email, phone) VALUES ('Vincent Maniscalco','vmaniscalcojr@gmail.com','8453254019');
+
+INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'Ian Price'),'admin');
+INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'Steven Grant'),'admin');
+INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'Quincey Wilson'),'admin');
+
+
+INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'Adam Connaker'),'captain');
+INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'Joseph Huntenburg'),'captain');
+INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'Kevin Westerman'),'captain');
+INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'Eric Shull'),'captain');
+INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'Jeremy Grompone'),'captain');
+INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'John Balash'),'captain');
+INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'David Tawil'),'captain');
+INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'Jaime Baez'),'captain');
+INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'Darren Major'),'captain');
+INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'Daniel Miller'),'captain');
+INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'James Riedel'),'captain');
+INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'Brendan McCullagh'),'captain');
+INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'Ian Donovan'),'captain');
+INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'Jack Lamb'),'captain');
+INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'John Paul Detty'),'captain');
+INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'Vincent Maniscalco'),'captain');
 
 INSERT INTO teams (name, captain, season_id) VALUES ('Boxers',(SELECT user_id FROM users WHERE name = 'Adam Connaker'),1);
 INSERT INTO teams (name, captain, season_id) VALUES ('Dickens',(SELECT user_id FROM users WHERE name = 'Joseph Huntenburg'),1);
@@ -478,5 +508,7 @@ INSERT INTO players (user_id, team_id) VALUES ((SELECT user_id FROM users WHERE 
 INSERT INTO players (user_id, team_id) VALUES ((SELECT user_id FROM users WHERE name='Stephen Torres'), (SELECT team_id FROM teams WHERE name='Vice Versa'));
 INSERT INTO players (user_id, team_id) VALUES ((SELECT user_id FROM users WHERE name='Stuart Reichenberger'), (SELECT team_id FROM teams WHERE name='Vice Versa'));
 INSERT INTO players (user_id, team_id) VALUES ((SELECT user_id FROM users WHERE name='Vincent Maniscalco'), (SELECT team_id FROM teams WHERE name='Vice Versa'));
+
+
 
 
