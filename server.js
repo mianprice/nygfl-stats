@@ -25,8 +25,8 @@ async function getUsers(args = {}) {
 }
 
 async function getPermissions({ user_id }) {
-    const res = await pool.query(`SELECT * FROM permissions ${user_id ? `WHERE permissions.user_id = '${user_id}'` : ''}`);
-    console.log(`SELECT * FROM permissions ${user_id ? `WHERE permissions.user_id = '${user_id}'` : ''}`);
+    const res = await pool.query(`SELECT level FROM permissions ${user_id ? `WHERE permissions.user_id = '${user_id}'` : ''}`);
+    console.log(`SELECT level FROM permissions ${user_id ? `WHERE permissions.user_id = '${user_id}'` : ''}`);
     return res.rows;
 }
 
@@ -135,7 +135,7 @@ server.post('/login', async (req, res) => {
     console.log(req.body);
     if (req.body?.email) {
         const users = await getUsers({ email: req.body.email });
-        const permissions = await getPermissions({ user_id: users[0].user_id });
+        const permissions = await (await getPermissions({ user_id: users[0].user_id })).map(el => el.level);
         res.json([{
             ...users[0],
             permissions

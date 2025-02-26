@@ -1,6 +1,5 @@
 const initialState = {
     view: '',
-    // awaitData: false,
     current: new Object(),
     past: new Object(),
     future: new Object(),
@@ -38,12 +37,9 @@ async function getData() {
 }
   
 
-async function render(data) {
+function render(data) {
     let newHTML;
     let selector;
-    // if (data.awaitData) {
-    //     data.future = await getData();
-    // }
     switch (data.view) {
         case 'player':
             selector = `#${data.view}.v-table .edit-interface`;
@@ -117,17 +113,40 @@ async function render(data) {
                 </div>
             `}`, '');
             break;
-        case 'admin':
-            selector = `#${data.view}.v-table .edit-interface`;
-            // prob admin tools like:
-            // request debugger
-            // batch upload tool
+        case 'admin_view':
+            selector = `#admin_view`;
+            newHTML = `
+                <h3>Admin Controls</h3>
+                <div class="v-row">
+                    <input type="button" class="v-item" data-action="edit_team" value="Edit Team"/>
+                    <input type="button" class="v-item" data-action="edit_report" value="Edit Stat Report"/>
+                    <input type="button" class="v-item" data-action="create_season" value="Create Season"/>
+                </div>
+            `;
+            
+            break;
+        case 'captain_view':
+            selector = `#captain_view`;
+            newHTML = `
+                <h3>Captain Controls</h3>
+                <div class="v-row">
+                    <input type="button" class="v-item" data-action="edit_report" value="Edit Stat Report"/>
+                    <input type="button" class="v-item" data-action="create_report" value="Create Season"/>
+                </div>
+            `;
+            
+            break;
+        case 'controls':
+            selector = '#controls';
+            newHTML = `
+                <section id="admin_view"></section>
+                <section id="captain_view"></section>
+                <section id="player_view"></section>
+            `;
             
             break;
         case 'login':
             selector = `#${data.view}`;
-            console.log(JSON.parse(localStorage.getItem('current_user')));
-            // prob email/phone + cookie
             if (localStorage.getItem('logged_in') === 'true') {
                 newHTML = `
                     <div class="v-item" id="username">${JSON.parse(localStorage.current_user).name}</div>
@@ -136,17 +155,18 @@ async function render(data) {
             } else {
                 newHTML = `
                     <input class="v-item" type="email" name="email" id="login_email">
-                    <input class="v-item" type="button" value="Login" id="login_button" disabled>
+                    <input class="v-item" type="button" value="Login" id="login_button">
                 `;
-            }
-
-                    
+            }   
+            
+            break;
     }
 
-    // actually insert
-    attach(data.action, selector, newHTML);
-
-    return;
+    if (data.action === 'recurse') {
+        return newHTML;
+    } else {
+        attach(data.action, selector, newHTML);
+    }
 }
 
 // local data cache
@@ -164,147 +184,33 @@ function addToCache(data) {
     }
 }
 
-
-
 window.stats_ui = {
     'render': render,
     'state': { ...initialState },
     'reset': reset
 };
 
-/*
-
-render({
-    action: 'replace',
-    view: 'player',
-    future: {
-        players: [{
-            name: 'test name',
-            player_id: 1,
-            user_id: 1,
-            createdAt: 'sometime',
-            team_id: 1
-        }]
-    }
-});
-render({
-    action: 'replace',
-    view: 'report',
-    future: {
-        reports: [{
-            report_id: 1,
-            user_id: 1,
-            createdAt: 'sometime',
-            stats: [{
-                name: 'test name',
-                id: 1,
-                report_id: 1,
-                createdAt: 'sometime',
-                player_id: 1
-            }]
-        }]
-    }
-});
-render({
-    action: 'replace',
-    view: 'stat',
-    future: {
-        stats: [{
-            name: 'test name',
-            value: 7,
-            id: 1,
-            report_id: 1,
-            createdAt: 'sometime',
-            player_id: 1
-        }]
-    }
-});
-render({
-    action: 'replace',
-    view: 'team',
-    future: {
-        teams: [{
-            name: 'test name',
-            team_id: 1,
-            captain: 1,
-            createdAt: 'sometime',
-            season_id: 1,
-            players: [{
-                name: 'test name',
-                player_id: 1,
-                user_id: 1,
-                createdAt: 'sometime',
-                team_id: 1
-            }]
-        }]
-    }
-});
-render({
-    action: 'replace',
-    view: 'season',
-    future: {
-        seasons: [{
-            name: 'test name',
-            season_id: 1,
-            createdAt: 'sometime',
-            teams: [{
-                name: 'test name',
-                team_id: 1,
-                captain: 1,
-                createdAt: 'sometime',
-                season_id: 1,
-                players: [{
-                    name: 'test name',
-                    player_id: 1,
-                    user_id: 1,
-                    createdAt: 'sometime',
-                    team_id: 1
-                }]
-            }]
-        }]
-    }
-});
-render({
-    action: 'replace',
-    view: 'user',
-    future: {
-        users: [{
-            name: 'test name',
-            user_id: 1,
-            email: 'test email',
-            phone: '1235557890',
-            createdAt: 'sometime'
-        }]
-    }
-});
-
-*/
-
-
-
-
-if (localStorage.getItem('logged_in') === 'true') {
-    render({
-        action: 'replace',
-        view: 'login',
-        future: JSON.parse(localStorage.getItem('current_user'))
-    }).then(() => {
-        document.querySelector('#logout_button').addEventListener('click', async e => {
+function renderLogin() {
+    if (localStorage.getItem('logged_in') === 'true') {
+        render({
+            action: 'replace',
+            view: 'login',
+            future: JSON.parse(localStorage.getItem('current_user'))
+        });
+    
+        document.querySelector('#login input[type="button"]').addEventListener('click', async e => {
             delete localStorage.current_user;
             delete localStorage.logged_in;
-            render({
-                action: 'replace',
-                view: 'login'
-            });
+            renderLogin();
         });
-    });
     
-} else {
-    render({
-        action: 'replace',
-        view: 'login'
-    }).then(() => {
-        document.querySelector('#login_button').addEventListener('click', async e => {
+    } else {
+        render({
+            action: 'replace',
+            view: 'login'
+        });
+        
+        document.querySelector('#login input[type="button"]').addEventListener('click', async e => {
             // try to grab valid user
             try {
                 const data = await postData(`/login`, { email: login_email.value });
@@ -312,27 +218,109 @@ if (localStorage.getItem('logged_in') === 'true') {
                 if (data.length > 0) {
                     localStorage.setItem('current_user', JSON.stringify(data[0]));
                     localStorage.setItem('logged_in', 'true');
-                    render({
-                        action: 'replace',
-                        view: 'login',
-                        future: data[0]
-                    });
+                    renderLogin();
                 }
             } catch (error) {
                 console.error(error);
             }
         });
-        document.querySelector('#login_email').addEventListener('change', e => {
+        document.querySelector('#login input[type="email"]').addEventListener('change', e => {
             console.log(login_email.value);
             if (/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(login_email.value)) {
                 login_button.disabled = false;
             }
         });
-    });
+    }
+
+    renderMain();
+};
+
+
+function renderMain() {
+    if (localStorage.getItem('logged_in') === 'true') {
+        const user = JSON.parse(localStorage.getItem('current_user'));
+
+        if (user.permissions.includes('admin')) {
+            render({
+                action: 'replace',
+                view: 'admin_view'
+            });
+        }
+
+        if (user.permissions.includes('captain')) {
+            render({
+                action: 'replace',
+                view: 'captain_view'
+            });
+        }
+    } else {
+        render({
+            action: 'replace',
+            view: 'controls'
+        });
+    }
 }
 
+function handleRouting(event) {
+    console.log(event.target);
+    switch (event.target.dataset.action) {
+        case 'edit_team':
+            // choose team from list, by season
 
+            // render chosen team
 
+            // add new player by selecting from available or creating new
+
+            // include button with save/view action for confirmation
+            break;
+        case 'edit_report':
+            // choose report from list (by user for captain, by season for admin)
+
+            // render chosen report
+
+            // allow adding new stats
+
+            // include button with save/view action for confirmation
+
+            break;
+        case 'create_report':
+            // choose week/opponent
+
+            // allow adding new stats
+
+            // include button with save/view action for confirmation
+
+            break;
+        case 'create_season':
+            // choose season name
+
+            // allow paste from excel format into textarea, for processing into database
+
+            // include button with save/view action for confirmation
+
+            break;
+        case 'team_summary':
+            // summary view of team, for base captain view and team edit confirmation
+
+            break;
+        case 'season_summary':
+            // summary view of season, with each team and players for each listed (for confirmation of successful processing)
+
+            break;
+        case 'team_summary_stats':
+            // collect stats for a given team and show leaderboard
+
+            break;
+        case 'season_summary_stats':
+            // collect stats for a given season, across teams, and show leaderboard
+
+            break;
+        case 'week_summary_stats':
+            // collect stats for a given week, across teams, and show leaderboard
+
+            break;
+    }
+}
 
 
 
@@ -361,3 +349,11 @@ async function postData(path, body_data) {
         console.error(error.message);
     }
 }
+
+document.querySelector('#controls').addEventListener('click', handleRouting);
+
+
+//main
+renderLogin();
+
+renderMain();

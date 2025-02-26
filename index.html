@@ -17,6 +17,10 @@
             margin-bottom: 25px;
         }
 
+        #controls section {
+            margin-bottom: 0px;
+        }
+
         #summary {
             justify-content: center;
             flex-wrap: wrap;
@@ -119,11 +123,16 @@
 <body>
     <header>
         <h1>NYGFL Stats Interface</h1>
-        <h6>michael.ian.price@gmail.com</h6>
         <section id="login" class="toolbar v-row"></section>
     </header>
 
-    <section id="player" class="v-table">
+    <section id="controls" class="v-table">
+        <section id="admin_view"></section>
+        <section id="captain_view"></section>
+        <section id="player_view"></section>
+    </section>
+
+    <!-- <section id="player" class="v-table">
         <div class="v-row v-table-header">
             <div class="v-item" data-prop="name">name</div>
             <div class="v-item hidden" data-prop="player_id">player_id</div>
@@ -184,7 +193,6 @@
             <input placeholder="#" type="number" name="number" min="0" id="stat_count">
             <select name="player" id="stat_player">
                 <option value="player" selected disabled>--</option>
-                <!-- inject players from structured data based on team here -->
             </select>
             <input type="button" value="Add" id="stat_add" disabled>
         </div>
@@ -197,55 +205,26 @@
             <div class="v-item" data-prop="stats">stats</div>
         </div>
         <div class="edit-interface v-row"></div>
-    </section>
-    <section id="admin" class="v-table">
-        <div class="v-row">
-            <div class="v-item link" data-path="/season/new">/season/new</div>
-            <div class="v-item link" data-path="/player/new">/player/new</div>
-            <div class="v-item link" data-path="/team/new">/team/new</div>
-            <div class="v-item link" data-path="/user/new">/user/new</div>
-            <div class="v-item link" data-path="/report/new">/report/new</div>
-            <div class="v-item link" data-path="/stat/new">/stat/new</div>
-        </div>
-    </section>
+    </section> -->
 
     <!-- end body templates -->
 
-    
-
-    <section id="edit">
-        
-        
-    </section>
-    <section id="summary">
+    <!-- <section id="summary">
         <div class="row">
             <div>Type</div>
             <div>Count</div>
             <div>Player</div>
         </div>
-    </section>
+    </section> -->
 
-    <input type="text" name="req_type" id="req_type">
+    <!-- <input type="text" name="req_type" id="req_type">
     <input type="text" name="req_path" id="req_path">
     <textarea name="req_body" id="req_body" cols="30" rows="10"></textarea>
-    <input type="button" value="Send Request" id="req_send">
+    <input type="button" value="Send Request" id="req_send"> -->
     <script src="template.js"></script>
     <script src="client.js"></script>
 
     <script>
-        // TODO set up data, then navigation, including collapse/expand/subview logic
-        // const initialData = fetch('http://localhost:3001/users', { method: 'get' }).then(response => response.json()).then(json => {
-        //     const newMarkup = render({
-        //         view: 'user',
-        //         future: {
-        //             users: json
-        //         }
-        //     });
-        //     attach('#user_input option', newMarkup);
-        //     console.log(newMarkup);
-        // }).catch(e => {
-        //     console.error(e);
-        // });
 
         
     </script>
