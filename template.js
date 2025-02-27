@@ -1,43 +1,32 @@
+window.stats_ui = {};
+
 const initialState = {
-    view: '',
-    current: new Object(),
-    past: new Object(),
-    future: new Object(),
+    currentSeason: null,
+    currentTeam: null
 };
 
-function reset() {
+function resetState() {
     window.stats_ui.state = { ...initialState };
 }
 
 function attach(action, selector, content) {
-    const t = document.createElement('template');
-    t.innerHTML = content.trim();
+    let t;
+    if (content.trim) {
+        t = document.createElement('template');
+        t.innerHTML = content.trim();
+    } else {
+        t = content
+    }
     if (action === 'add-before') {
         document.querySelector(selector).before(...t.content.childNodes);
     } else if (action === 'replace') {
         document.querySelector(selector).replaceChildren(...t.content.childNodes);
+    } else if (action === 'add-after') {
+        document.querySelector(selector).after(...t.content.childNodes);
     }
-}
+} 
 
-async function getData() {
-    // build relevant query URL
-    const path = '';
-    const url = `http://localhost:3001/${path}`;
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Response status: ${response.status}`);
-        }
-
-        const json = await response.json();
-        console.log(json);
-    } catch (error) {
-        console.error(error.message);
-    }
-}
-  
-
-function render(data) {
+function renderIntoTable(data) {
     let newHTML;
     let selector;
     switch (data.view) {
@@ -113,8 +102,8 @@ function render(data) {
                 </div>
             `}`, '');
             break;
-        case 'admin_view':
-            selector = `#admin_view`;
+        case 'admin_controller':
+            selector = `#admin_controller`;
             newHTML = `
                 <h3>Admin Controls</h3>
                 <div class="v-row">
@@ -125,8 +114,8 @@ function render(data) {
             `;
             
             break;
-        case 'captain_view':
-            selector = `#captain_view`;
+        case 'captain_controller':
+            selector = `#captain_controller`;
             newHTML = `
                 <h3>Captain Controls</h3>
                 <div class="v-row">
@@ -139,9 +128,9 @@ function render(data) {
         case 'controls':
             selector = '#controls';
             newHTML = `
-                <section id="admin_view"></section>
-                <section id="captain_view"></section>
-                <section id="player_view"></section>
+                <section id="admin_controller"></section>
+                <section id="captain_controller"></section>
+                <section id="player_controller"></section>
             `;
             
             break;
@@ -149,6 +138,7 @@ function render(data) {
             selector = `#${data.view}`;
             if (localStorage.getItem('logged_in') === 'true') {
                 newHTML = `
+                    <input class="v-item" type="button" value="Home" id="home_button">
                     <div class="v-item" id="username">${JSON.parse(localStorage.current_user).name}</div>
                     <input class="v-item" type="button" value="Logout" id="logout_button">
                 `;
@@ -176,6 +166,10 @@ function clearCache() {
     window.stats_cache = {};
 }
 
+async function setupCache() {
+    window.stats_cache = await get('data');
+}
+
 function addToCache(data) {
     if (Array.isArray(data)) {
 
@@ -184,28 +178,25 @@ function addToCache(data) {
     }
 }
 
-window.stats_ui = {
-    'render': render,
-    'state': { ...initialState },
-    'reset': reset
-};
-
 function renderLogin() {
     if (localStorage.getItem('logged_in') === 'true') {
-        render({
+        renderIntoTable({
             action: 'replace',
             view: 'login',
             future: JSON.parse(localStorage.getItem('current_user'))
         });
     
         document.querySelector('#login input[type="button"]').addEventListener('click', async e => {
-            delete localStorage.current_user;
-            delete localStorage.logged_in;
-            renderLogin();
-        });
-    
+            if (e.target.id === 'home_button') {
+                main();
+            } else {
+                delete localStorage.current_user;
+                delete localStorage.logged_in;
+                renderLogin();
+            }
+        });    
     } else {
-        render({
+        renderIntoTable({
             action: 'replace',
             view: 'login'
         });
@@ -213,7 +204,7 @@ function renderLogin() {
         document.querySelector('#login input[type="button"]').addEventListener('click', async e => {
             // try to grab valid user
             try {
-                const data = await postData(`/login`, { email: login_email.value });
+                const data = await post(`/login`, { email: login_email.value });
                 console.log(data);
                 if (data.length > 0) {
                     localStorage.setItem('current_user', JSON.stringify(data[0]));
@@ -241,20 +232,20 @@ function renderMain() {
         const user = JSON.parse(localStorage.getItem('current_user'));
 
         if (user.permissions.includes('admin')) {
-            render({
+            renderIntoTable({
                 action: 'replace',
-                view: 'admin_view'
+                view: 'admin_controller'
             });
         }
 
         if (user.permissions.includes('captain')) {
-            render({
+            renderIntoTable({
                 action: 'replace',
-                view: 'captain_view'
+                view: 'captain_controller'
             });
         }
     } else {
-        render({
+        renderIntoTable({
             action: 'replace',
             view: 'controls'
         });
@@ -265,13 +256,20 @@ function handleRouting(event) {
     console.log(event.target);
     switch (event.target.dataset.action) {
         case 'edit_team':
-            // choose team from list, by season
-
-            // render chosen team
-
-            // add new player by selecting from available or creating new
-
-            // include button with save/view action for confirmation
+            // choose season
+            const seasonPicker = setupSeasonPicker();
+            seasonPicker.content.querySelector('select').addEventListener('change', event => {
+                event.target.disabled = true;
+                // choose team
+                const teamPicker = setupTeamPicker(event.target.value);
+                teamPicker.content.querySelector('select').addEventListener('change', async event => {
+                    // render chosen team
+                    const teamView = await setupTeamView(event.target.value, true);
+                    attach('replace', '#interactive', teamView);
+                });
+                attach('add-after', '#interactive .v-row', teamPicker);
+            });
+            attach('replace', '#interactive', seasonPicker);
             break;
         case 'edit_report':
             // choose report from list (by user for captain, by season for admin)
@@ -322,10 +320,128 @@ function handleRouting(event) {
     }
 }
 
+function handleInteraction(event) {
 
+}
 
+function setupSeasonPicker() {
+    const seasons = window.stats_cache.seasons;
+    const newSeasonPicker = window.templates['season_picker'].cloneNode(true);
+    const newSelect = newSeasonPicker.content.querySelector('select');
 
-async function postData(path, body_data) {
+    seasons.forEach(element => {
+        const newOption = window.templates['season_option'].cloneNode(true).content.querySelector('option');
+        newOption.value = element.season_id;
+        newOption.label = element.name;
+        newSelect.appendChild(newOption)
+    });
+    
+    return newSeasonPicker;
+}
+
+function setupTeamPicker(season_id) {
+    window.stats_ui.state.currentSeason = season_id;
+    const teams = window.stats_cache.teams.filter(el => el.season_id == season_id);
+    const newTeamPicker = window.templates['team_picker'].cloneNode(true);
+    const newSelect = newTeamPicker.content.querySelector('select');
+
+    teams.forEach(element => {
+        const newOption = window.templates['blank_option'].cloneNode(true).content.querySelector('option');
+        newOption.value = element.team_id;
+        newOption.label = element.team_name;
+        newSelect.appendChild(newOption)
+    });
+    
+    return newTeamPicker;
+}
+
+async function setupTeamView(team_id, editable) {
+    window.stats_ui.state.currentTeam = team_id;
+    const players = window.stats_cache.players.filter(el => el.team_id == team_id);
+    const newTeamView = window.templates['team_view'].cloneNode(true);
+    const newTable = newTeamView.content.querySelector('.v-table');
+
+    console.log(players);
+
+    players.forEach(element => {
+        const newPlayerRow = window.templates['player_row'].cloneNode(true).content.querySelector('.v-row');
+        newPlayerRow.dataset.player_id = element.player_id;
+        newPlayerRow.dataset.user_id = element.user_id;
+        newPlayerRow.querySelector('div[data-prop="name"]').innerText = element.name;
+        newPlayerRow.querySelector('div[data-prop="phone"]').innerText = element.phone;
+        newPlayerRow.querySelector('div[data-prop="email"]').innerText = element.email;
+        newTable.appendChild(newPlayerRow);
+    });
+
+    if (editable) {
+        const availablePlayers = await get(`uncommitted_players/${window.stats_ui.state.currentSeason}`);
+
+        const newPlayerPicker = window.templates['player_picker'].cloneNode(true).content.querySelector('.v-table');
+        const newSelect = newPlayerPicker.querySelector('.picker select');
+
+        availablePlayers.forEach(element => {
+            const newOption = window.templates['blank_option'].cloneNode(true).content.querySelector('option');
+            newOption.value = element.user_id;
+            newOption.label = element.name;
+            newSelect.appendChild(newOption);
+        });
+
+        newPlayerPicker.querySelector('input[type="button"]').addEventListener('click', async event => {
+            let player_id, user_id;
+            if (event.target.parentElement.parentElement.querySelector('.picker select').value !== 'default') {
+                // create player record with existing user_id
+                user_id = event.target.parentElement.parentElement.querySelector('.picker select').value;
+
+                player_id = await post('/players', {
+                    type: 'add',
+                    data: {
+                        user_id,
+                        team_id
+                    }
+                });
+
+            } else if (
+                event.target.parentElement.parentElement.querySelector('.adder input[type="text"]').value !== '' &&
+                event.target.parentElement.parentElement.querySelector('.adder input[type="email"]').value !== '' &&
+                event.target.parentElement.parentElement.querySelector('.adder input[type="phone"]').value !== ''
+            ) {
+                // create user record with input values
+                const name = event.target.parentElement.parentElement.querySelector('.adder input[type="text"]').value;
+                const email = event.target.parentElement.parentElement.querySelector('.adder input[type="email"]').value;
+                const phone = event.target.parentElement.parentElement.querySelector('.adder input[type="phone"]').value;
+
+                user_id = (await post('/users', {
+                    type: 'add',
+                    data: {
+                        name,
+                        email,
+                        phone
+                    }
+                }))[0].user_id;
+
+                player_id = await post('/players', {
+                    type: 'add',
+                    data: {
+                        user_id,
+                        team_id
+                    }
+                });
+            }
+
+            console.log(`User ${user_id} has been added to the database on team ${team_id} as player ${player_id}`);
+
+            await setupCache();
+            const teamView = await setupTeamView(team_id, true);
+            attach('replace', '#interactive', teamView);
+        });
+
+        newTable.appendChild(newPlayerPicker);
+    }
+
+    return newTeamView;
+}
+
+async function post(path, body_data) {
     console.log(body_data);
     // build relevant query URL
     const url = `http://localhost:3001${path}`;
@@ -343,7 +459,23 @@ async function postData(path, body_data) {
         }
 
         const json = await response.json();
-        console.log(json);
+        return json;
+    } catch (error) {
+        console.error(error.message);
+    }
+}
+
+async function get(path) {
+    // build relevant query URL
+    const url = `http://localhost:3001/${path}`;
+    console.log(url);
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Response status: ${response.status}`);
+        }
+
+        const json = response.json();
         return json;
     } catch (error) {
         console.error(error.message);
@@ -351,9 +483,34 @@ async function postData(path, body_data) {
 }
 
 document.querySelector('#controls').addEventListener('click', handleRouting);
+// document.querySelector('#interactive').addEventListener('click', handleInteraction);
+
+function grabTemplates() {
+    const templates = {};
+    [...document.querySelectorAll('template')].forEach(element => {
+        templates[element.dataset.name] = element.cloneNode(true);
+    });
+
+    window.templates = templates;
+}
+
+function resetInteractive() {
+    window.interactive.innerHTML = '';
+}
+
+function main() {
+    resetInteractive();
+    resetState();
+
+    grabTemplates();
+
+    setupCache();
+
+    renderLogin();
+
+    renderMain();
+}
 
 
 //main
-renderLogin();
-
-renderMain();
+main()

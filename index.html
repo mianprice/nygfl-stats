@@ -127,10 +127,12 @@
     </header>
 
     <section id="controls" class="v-table">
-        <section id="admin_view"></section>
-        <section id="captain_view"></section>
-        <section id="player_view"></section>
+        <section id="admin_controller"></section>
+        <section id="captain_controller"></section>
+        <section id="player_controller"></section>
     </section>
+
+    <section id="interactive" class="v-table"></section>
 
     <!-- <section id="player" class="v-table">
         <div class="v-row v-table-header">
@@ -221,12 +223,71 @@
     <input type="text" name="req_path" id="req_path">
     <textarea name="req_body" id="req_body" cols="30" rows="10"></textarea>
     <input type="button" value="Send Request" id="req_send"> -->
+    <template data-name="season_picker">
+        <div class="v-row">
+            <label class="v-item" for="season">Pick a season: </label>
+            <select class="v-item" name="season">
+                <option value="default" selected disabled>Season</option>
+            </select>
+        </div>
+    </template>
+    <template data-name="season_option">
+        <option value=""></option>
+    </template>
+    <template data-name="team_picker">
+        <div class="v-row">
+            <label class="v-item" for="team">Pick a team: </label>
+            <select class="v-item" name="team">
+                <option value="default" selected disabled>Team</option>
+            </select>
+        </div>
+    </template>
+    <template data-name="blank_option">
+        <option value=""></option>
+    </template>
+    <template data-name="team_view">
+        <div class="v-table">
+            <div class="v-row v-table-header">
+                <div class="v-item">Name</div>
+                <div class="v-item">Phone</div>
+                <div class="v-item">Email</div>
+            </div>
+        </div>
+    </template>
+    <template data-name="player_row">
+        <div class="v-row" data-player_id="" data-user_id="">
+            <div class="v-item" data-prop="name"></div>
+            <div class="v-item" data-prop="phone"></div>
+            <div class="v-item" data-prop="email"></div>
+        </div>
+    </template>
+    <template data-name="player_picker">
+        <div class="v-table v-row">
+            <div class="v-row">
+                <div class="v-item">To add a new player, either select an uncommitted player from the dropdown, or enter a new player's information using the fields below.</div>
+            </div>
+            <div class="v-row picker">
+                <label class="v-item" for="player">Pick a player: </label>
+                <select class="v-item" name="player">
+                    <option value="default" selected disabled>Player Name</option>
+                </select>
+            </div>
+            <div class="v-row adder">
+                <label class="v-item">Add a player: </label>
+                <input type="text" class="v-item" name="name" placeholder="Name">
+                <input type="phone" class="v-item" name="phone" placeholder="Phone">
+                <input type="email" class="v-item" name="email" placeholder="Email">
+            </div>
+            <div class="v-row">
+                <input type="button" value="Save" />
+            </div>
+        </div>
+    </template>
+    <template data-name="submit_button">
+    </template>
+    <template data-name="user_picker"></template>
+
     <script src="template.js"></script>
     <script src="client.js"></script>
-
-    <script>
-
-        
-    </script>
 </body>
 </html>

@@ -92,22 +92,22 @@ console.log('hello')
 // }
 
 
-window.req_send.addEventListener('click', async e => {
-    console.log(`
-        req_type: ${window.req_type.value}
-        req_body: ${window.req_body.value}
-        req_path: ${window.req_path.value}
-    `)
-    const options = {
-        method: window.req_type.value
-    };
-    if (window.req_type.value !== 'get') {
-        options.body = JSON.parse(window.req_body.value)
-    }
-    const response = await fetch(req_path.value, options).then(response => response.json());
+// window.req_send.addEventListener('click', async e => {
+//     console.log(`
+//         req_type: ${window.req_type.value}
+//         req_body: ${window.req_body.value}
+//         req_path: ${window.req_path.value}
+//     `)
+//     const options = {
+//         method: window.req_type.value
+//     };
+//     if (window.req_type.value !== 'get') {
+//         options.body = JSON.parse(window.req_body.value)
+//     }
+//     const response = await fetch(req_path.value, options).then(response => response.json());
 
-    console.log('response: ', response);
-});
+//     console.log('response: ', response);
+// });
 
 
 

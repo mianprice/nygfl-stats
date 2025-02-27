@@ -37,7 +37,7 @@ async function getSeasons(id) {
 }
 
 async function getTeams(id) {
-    const res = await pool.query(`SELECT *, u.name as captain_name, s.name as season_name FROM teams t ${id ? `WHERE t.id = '${id}'` : ''} JOIN users u ON t.captain = u.user_id JOIN seasons s ON t.season_id = s.season_id`);
+    const res = await pool.query(`SELECT *, t.name as team_name, u.name as captain_name, s.name as season_name FROM teams t ${id ? `WHERE t.id = '${id}'` : ''} JOIN users u ON t.captain = u.user_id JOIN seasons s ON t.season_id = s.season_id`);
     // console.log(res.rows);
     return res.rows/*.map(async team => {
         const res2 = await pool.query(`SELECT *, t.name as team_name FROM players p WHERE team_id = '${team.team_id}' JOIN users u ON p.user_id = u.user_id`);
@@ -48,6 +48,12 @@ async function getTeams(id) {
 
 async function getPlayers(id) {
     const res = await pool.query(`SELECT *, t.name as team_name FROM players p ${id ? `WHERE player_id = '${id}' ` : ''}JOIN teams t ON p.team_id = t.team_id JOIN users u ON p.user_id = u.user_id`);
+    // console.log(res.rows);
+    return res.rows;
+}
+
+async function getUncommittedPlayers(season_id) {
+    const res = await pool.query(`SELECT * FROM users WHERE user_id NOT IN (SELECT user_id FROM players WHERE team_id IN (SELECT team_id FROM teams WHERE season_id = '${season_id}'))`);
     // console.log(res.rows);
     return res.rows;
 }
@@ -65,7 +71,7 @@ async function getStats(id) {
 }
 
 async function addUser(name, email, phone) {
-    const res = await pool.query(`INSERT INTO users (name, email, phone) VALUES ('${name}', '${email}', '${phone});`);
+    const res = await pool.query(`INSERT INTO users (name, email, phone) VALUES ('${name}', '${email}', '${phone}') RETURNING user_id;`);
     // console.log(res.rows);
     return res.rows;
 }
@@ -82,8 +88,8 @@ async function addTeam(name, captain, season) {
     return res.rows;
 }
 
-async function addPlayer(name, team) {
-    const res = await pool.query(`INSERT INTO players (user_id, team_id) VALUES ((SELECT user_id FROM users WHERE name='${name}'), (SELECT team_id FROM teams WHERE name='${team}'));`);
+async function addPlayer(user_id, team_id) {
+    const res = await pool.query(`INSERT INTO players (user_id, team_id) VALUES ('${user_id}', '${team_id}');`);
     // console.log(res.rows);
     return res.rows;
 }
@@ -101,7 +107,7 @@ async function addStats(name, email, phone) {
 }
 
 async function generateCache() {
-    return {
+    return await {
         teams: await getTeams(),
         users: await getUsers(),
         seasons: await getSeasons(),
@@ -124,9 +130,14 @@ const server = express();
 const port = 3001;
 server.use(bodyParser.json())
 
+server.use((req, res, next) => {
+    console.log('%s %s %s', req.method, req.url, req.path)
+    next()
+  })
+
 
 server.get('/data', async (req, res) => {
-    const currentData = generateCache();
+    const currentData = await generateCache();
 
     res.json(currentData);
 });
@@ -153,7 +164,7 @@ server.route('/teams/:id?')
     })
     .post(async (req, res, next) => {
         if (req.body.type == 'add') {
-            mutator.team(req.body.data.name, req.body.data.captain, req.body.data.season)
+            res.json(await mutator.team(req.body.data.name, req.body.data.captain, req.body.data.season));
         }
     });
 
@@ -166,7 +177,7 @@ server.route('/seasons/:id?')
     })
     .post(async (req, res, next) => {
         if (req.body.type == 'add') {
-            mutator.season(req.body.data.name)
+            res.json(await mutator.season(req.body.data.name))
         }
     });
 
@@ -179,7 +190,7 @@ server.route('/players/:id?')
     })
     .post(async (req, res, next) => {
         if (req.body.type == 'add') {
-            mutator.player(req.body.data.name, req.body.data.captain, req.body.data.season)
+            res.json(await mutator.player(req.body.data.user_id, req.body.data.team_id));
         }
     });
 
@@ -192,7 +203,7 @@ server.route('/users/:id?')
     })
     .post(async (req, res, next) => {
         if (req.body.type == 'add') {
-            mutator.user(req.body.data.name, req.body.data.email, req.body.data.phone)
+            res.json(await mutator.user(req.body.data.name, req.body.data.email, req.body.data.phone));
         }
     });
     
@@ -205,7 +216,7 @@ server.route('/reports/:id?')
     })
     .post(async (req, res, next) => {
         if (req.body.type == 'add') {
-            mutator.report(req.body.data.user_id);
+            res.json(await mutator.report(req.body.data.user_id));
         }
     });
 
@@ -218,7 +229,7 @@ server.route('/stats/:id?')
     })
     .post(async (req, res, next) => {
         if (req.body.type == 'add') {
-            mutator.stat(req.body.data.name, req.body.data.value, req.body.data.report_id, req.body.data.player_id);
+            res.json(await mutator.stat(req.body.data.name, req.body.data.value, req.body.data.report_id, req.body.data.player_id));
         }
     });
 
@@ -226,6 +237,12 @@ server.get('/:file', async (req, res) => {
     const filename = !req.params.file ? 'index.html' : req.params.file;
     console.log(filename);
     res.sendFile(path.join(__dirname, req.params.file));
+});
+
+server.get('/uncommitted_players/:season_id', async (req, res) => {
+    if (req.params.season_id) {
+        res.json(await getUncommittedPlayers(req.params.season_id));
+    }
 })
 
 server.listen(port, () => {

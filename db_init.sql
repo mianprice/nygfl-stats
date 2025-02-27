@@ -3,7 +3,7 @@ CREATE DATABASE league_stats;
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
-    email TEXT,
+    email TEXT UNIQUE,
     phone TEXT,
     createdAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
@@ -53,6 +53,7 @@ INSERT INTO seasons (name) VALUES ('Spring 2025');
 
 
 INSERT INTO users (name, email, phone) VALUES ('Adam Connaker','aconnaker@gmail.com','6125987136');
+INSERT INTO users (name, email, phone) VALUES ('Charlotte Price','charprice6@gmail.com','6783141234');  -- test for player not committed to a season in the system
 INSERT INTO users (name, email, phone) VALUES ('Anthony Easter','aeaster2@fordham.edu','9512582697');
 INSERT INTO users (name, email, phone) VALUES ('Chris Magoo','cmcgough10@gmail.com','7185942101');
 INSERT INTO users (name, email, phone) VALUES ('Christopher Hernandez','thechrishernandez@gmail.com','3477978664');
