@@ -272,16 +272,24 @@ function handleRouting(event) {
             attach('replace', '#interactive', seasonPicker);
             break;
         case 'edit_report':
+            const reportPicker = setupReportPicker(JSON.parse(localStorage.getItem('current_user')));
             // choose report from list (by user for captain, by season for admin)
+            reportPicker.content.querySelector('select').addEventListener('change', event => {
+                event.target.disabled = true;
+                // render chosen report
+                const newReportEditor = setupReportEditor(event.target.value);
 
-            // render chosen report
-
+            });
+            attach('replace', '#interactive', reportPicker);
             // allow adding new stats
 
             // include button with save/view action for confirmation
 
             break;
         case 'create_report':
+            const newReportEditor = setupReportEditor('new');
+
+            attach('replace', '#interactive', newReportEditor);
             // choose week/opponent
 
             // allow adding new stats
@@ -290,6 +298,9 @@ function handleRouting(event) {
 
             break;
         case 'create_season':
+            const newSeasonEditor = setupSeasonEditor();
+
+            attach('replace', '#interactive', newSeasonEditor);
             // choose season name
 
             // allow paste from excel format into textarea, for processing into database
@@ -330,7 +341,7 @@ function setupSeasonPicker() {
     const newSelect = newSeasonPicker.content.querySelector('select');
 
     seasons.forEach(element => {
-        const newOption = window.templates['season_option'].cloneNode(true).content.querySelector('option');
+        const newOption = window.templates['blank_option'].cloneNode(true).content.querySelector('option');
         newOption.value = element.season_id;
         newOption.label = element.name;
         newSelect.appendChild(newOption)
@@ -353,6 +364,37 @@ function setupTeamPicker(season_id) {
     });
     
     return newTeamPicker;
+}
+
+function setupReportPicker(user) {
+    let reports;
+    if (user.permissions.includes('admin')) {
+        reports = window.stats_cache.reports.filter(el => true);
+
+    } else if (user.permissions.includes('captain')) {
+        reports = window.stats_cache.reports.filter(el => el.user_id == user.user_id);
+
+    }
+    const newReportPicker = window.templates['report_picker'].cloneNode(true);
+    const newSelect = newReportPicker.content.querySelector('select');
+
+    reports.forEach(element => {
+        const newOption = window.templates['blank_option'].cloneNode(true).content.querySelector('option');
+        newOption.value = element.report_id;
+        newOption.label = `${element.opponent_name} - ${element.created_at}`;
+        newSelect.appendChild(newOption)
+    });
+    
+    return newReportPicker;
+}
+
+function setupReportEditor(report_id) {
+    if (report_id === 'new') {
+        // create blank report
+    } else {
+        // populate report
+    }
+    // add editing tools
 }
 
 async function setupTeamView(team_id, editable) {

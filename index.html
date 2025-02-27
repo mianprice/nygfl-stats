@@ -231,9 +231,6 @@
             </select>
         </div>
     </template>
-    <template data-name="season_option">
-        <option value=""></option>
-    </template>
     <template data-name="team_picker">
         <div class="v-row">
             <label class="v-item" for="team">Pick a team: </label>
@@ -283,7 +280,22 @@
             </div>
         </div>
     </template>
-    <template data-name="submit_button">
+    <template data-name="report_picker">
+        <div class="v-row">
+            <label class="v-item" for="report">Pick a report: </label>
+            <select class="v-item" name="report">
+                <option value="default" selected disabled>Opponent - Report Date</option>
+            </select>
+        </div>
+    </template>
+    <template data-name="report_editor">
+        <div class="v-table">
+            <div class="v-row v-table-header">
+                <div class="v-item">Stat Type</div>
+                <div class="v-item">Count</div>
+                <div class="v-item">Player</div>
+            </div>
+        </div>
     </template>
     <template data-name="user_picker"></template>
 

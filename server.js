@@ -59,7 +59,7 @@ async function getUncommittedPlayers(season_id) {
 }
 
 async function getReports(id) {
-    const res = await pool.query(`SELECT * FROM reports ${id ? `WHERE report_id = '${id}'` : ''}`);
+    const res = await pool.query(`SELECT *, t.name as opponent_name, t.team_id as opponent_id  FROM reports r ${id ? `WHERE report_id = '${id}'` : ''} JOIN teams t on r.opponent_id = t.team_id`);
     // console.log(res.rows);
     return res.rows;
 }
@@ -94,13 +94,13 @@ async function addPlayer(user_id, team_id) {
     return res.rows;
 }
 
-async function addReport(user) {
-    const res = await pool.query(`INSERT INTO reports (user_id) VALUES (${user});`);
+async function addReport(user_id, team_id, opponent_id) {
+    const res = await pool.query(`INSERT INTO reports (user_id, team_id, opponent_id) VALUES (${user_id}, ${team_id}, ${opponent_id});`);
     // console.log(res.rows);
     return res.rows;
 }
 
-async function addStats(name, email, phone) {
+async function addStats(name, value, report_id, player_id) {
     const res = await pool.query(`INSERT INTO stats (name, value, report_id, player_id) VALUES ('${name}', ${value}, ${report_id}, ${player_id});`);
     // console.log(res.rows);
     return res.rows;
