@@ -295,6 +295,33 @@
                 <div class="v-item">Count</div>
                 <div class="v-item">Player</div>
             </div>
+            <input class="v-row" type="button" data-prop='submit' disabled>Submit Report</input>
+        </div>
+    </template>
+    <template data-name="stat_edit">
+        <div class="v-row" data-stat_id="0">
+            <select class="v-item" data-prop="type">
+                <option value="0" selected disabled>Stat Type</option>
+                <option value="pass_td">Pass TD</option>
+                <option value="rush_td">Rush TD</option>
+                <option value="rec_td">Receiving TD</option>
+                <option value="xp">Extra Point</option>
+                <option value="sack">Sack</option>
+                <option value="int">Interception</option>
+            </select>
+            <input type="number" class="v-item" placeholder="Count" value="0" />
+            <select class="v-item" data-prop="player">
+                <option value="0" selected disabled>Player Name</option>
+            </select>
+            <input type="button" data-prop="add" disabled>Add</input>
+        </div>
+    </template>
+    <template data-name="stat_view">
+        <div class="v-row" data-stat_id="0">
+            <div class="v-item" data-prop="type"></div>
+            <div class="v-item" data-prop="value"></div>
+            <div class="v-item" data-prop="player_id"></div>
+            <input type="button" data-prop="edit">Edit</input>
         </div>
     </template>
     <template data-name="user_picker"></template>

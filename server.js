@@ -52,6 +52,14 @@ async function getPlayers(id) {
     return res.rows;
 }
 
+async function getTeamIDByUserID(user_id, season_id) {
+    
+    console.log(`SELECT * FROM players p JOIN teams t ON p.team_id = t.team_id JOIN users u ON p.user_id = u.user_id WHERE (p.user_id = ${user_id} AND t.season_id = ${season_id})`);
+    const res = await pool.query(`SELECT * FROM players p JOIN teams t ON p.team_id = t.team_id JOIN users u ON p.user_id = u.user_id WHERE (p.user_id = ${user_id} AND t.season_id = ${season_id})`);
+    // console.log(res.rows);
+    return res.rows;
+}
+
 async function getUncommittedPlayers(season_id) {
     const res = await pool.query(`SELECT * FROM users WHERE user_id NOT IN (SELECT user_id FROM players WHERE team_id IN (SELECT team_id FROM teams WHERE season_id = '${season_id}'))`);
     // console.log(res.rows);
@@ -95,6 +103,7 @@ async function addPlayer(user_id, team_id) {
 }
 
 async function addReport(user_id, team_id, opponent_id) {
+    console.log(` blah ${user_id} : ${team_id} : ${opponent_id}`)
     const res = await pool.query(`INSERT INTO reports (user_id, team_id, opponent_id) VALUES (${user_id}, ${team_id}, ${opponent_id});`);
     // console.log(res.rows);
     return res.rows;
@@ -181,12 +190,16 @@ server.route('/seasons/:id?')
         }
     });
 
-server.route('/players/:id?')
+server.route('/players/:id?/:season_id?')
     .get(async (req, res, next) => {
-        if (req.params.id) {
+        console.log(parseInt(req.params.id.replace('u', '')));
+        if (!req.params.id.includes('u')) {
             res.json(await getPlayers(req.params.id));
+        } else if (req.params.id == undefined) {
+            res.json(await getPlayers());
+        } else {
+            res.json(await getTeamIDByUserID(parseInt(req.params.id.replace('u', '')), req.params.season_id));
         }
-        res.json(await getPlayers());
     })
     .post(async (req, res, next) => {
         if (req.body.type == 'add') {
@@ -216,20 +229,24 @@ server.route('/reports/:id?')
     })
     .post(async (req, res, next) => {
         if (req.body.type == 'add') {
-            res.json(await mutator.report(req.body.data.user_id));
+            res.json(await mutator.report(req.body.data.user_id, req.body.data.team_id, req.body.data.opponent_id));
+        } else if (req.body.type == 'publish') {
+            res.json(await mutator.report(req.body.data.user_id, req.body.data.published));
         }
     });
 
 server.route('/stats/:id?')
     .get(async (req, res, next) => {
-        if (req.body.stat_id) {
-            res.json(await getStats(req.body.stat_id));
+        if (req.params.id) {
+            res.json(await getStats(req.params.id));
         }
         res.json(await getStats());
     })
     .post(async (req, res, next) => {
         if (req.body.type == 'add') {
             res.json(await mutator.stat(req.body.data.name, req.body.data.value, req.body.data.report_id, req.body.data.player_id));
+        } else if (req.body.type == 'update') {
+            res.json(await mutator.stat(req.body.data.name, req.body.data.value, req.body.data.report_id, req.body.data.player_id, req.params.id));
         }
     });
 
@@ -246,6 +263,6 @@ server.get('/uncommitted_players/:season_id', async (req, res) => {
 })
 
 server.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
+    console.log(`Server listening on port ${port}`);
 });
 

@@ -284,6 +284,8 @@ INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHER
 INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'Jack Lamb'),'captain');
 INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'John Paul Detty'),'captain');
 INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'Vincent Maniscalco'),'captain');
+INSERT INTO permissions (user_id, level) VALUES ((SELECT user_id FROM users WHERE name = 'Ian Price'),'captain');
+
 
 INSERT INTO teams (name, captain, season_id) VALUES ('Boxers',(SELECT user_id FROM users WHERE name = 'Adam Connaker'),1);
 INSERT INTO teams (name, captain, season_id) VALUES ('Dickens',(SELECT user_id FROM users WHERE name = 'Joseph Huntenburg'),1);
