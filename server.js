@@ -104,13 +104,19 @@ async function addPlayer(user_id, team_id) {
 
 async function addReport(user_id, team_id, opponent_id) {
     console.log(` blah ${user_id} : ${team_id} : ${opponent_id}`)
-    const res = await pool.query(`INSERT INTO reports (user_id, team_id, opponent_id) VALUES (${user_id}, ${team_id}, ${opponent_id});`);
+    const res = await pool.query(`INSERT INTO reports (user_id, team_id, opponent_id) VALUES (${user_id}, ${team_id}, ${opponent_id}) RETURNING report_id;`);
     // console.log(res.rows);
     return res.rows;
 }
 
-async function addStats(name, value, report_id, player_id) {
-    const res = await pool.query(`INSERT INTO stats (name, value, report_id, player_id) VALUES ('${name}', ${value}, ${report_id}, ${player_id});`);
+async function addStats(report_id, stat_id, name, value, player_id) {
+    let res;
+    console.log(stat_id);
+    if (stat_id !== undefined) {
+        res = await pool.query(`UPDATE stats SET (name, value, report_id, player_id) = ('${name}', ${value}, ${report_id}, ${player_id}) WHERE id = ${stat_id};`);
+    } else {
+        res = await pool.query(`INSERT INTO stats (report_id) VALUES (${report_id}) RETURNING id;`);
+    }
     // console.log(res.rows);
     return res.rows;
 }
@@ -243,10 +249,11 @@ server.route('/stats/:id?')
         res.json(await getStats());
     })
     .post(async (req, res, next) => {
-        if (req.body.type == 'add') {
-            res.json(await mutator.stat(req.body.data.name, req.body.data.value, req.body.data.report_id, req.body.data.player_id));
+        console.log(req.body);
+        if (req.body.type == 'create') {
+            res.json(await mutator.stat(req.body.data.report_id));
         } else if (req.body.type == 'update') {
-            res.json(await mutator.stat(req.body.data.name, req.body.data.value, req.body.data.report_id, req.body.data.player_id, req.params.id));
+            res.json(await mutator.stat(req.body.data.report_id, req.params.id, req.body.data.name, req.body.data.value, req.body.data.player_id));
         }
     });
 

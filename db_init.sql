@@ -40,8 +40,8 @@ CREATE TABLE reports (
 );
 CREATE TABLE stats (
     id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    value INTEGER NOT NULL,
+    name TEXT,
+    value INTEGER,
     report_id INTEGER REFERENCES reports,
     player_id INTEGER REFERENCES players,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()

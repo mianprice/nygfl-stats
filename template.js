@@ -19,12 +19,18 @@ function attach(action, selector, content) {
     } else {
         t = content
     }
+
+    console.log(selector);
+    console.log(typeof selector !== 'string' ? selector : document.querySelector(selector))
+
+    const node = typeof selector !== 'string' ? selector : document.querySelector(selector);
+    
     if (action === 'add-before') {
-        document.querySelector(selector).before(...t.content.childNodes);
+        node.before(...t.content.childNodes);
     } else if (action === 'replace') {
-        document.querySelector(selector).replaceChildren(...t.content.childNodes);
+        node.replaceChildren(...t.content.childNodes);
     } else if (action === 'add-after') {
-        document.querySelector(selector).after(...t.content.childNodes);
+        node.after(...t.content.childNodes);
     }
 } 
 
@@ -284,64 +290,7 @@ function handleRouting(event) {
                 // render chosen report
                 const reportEditor = await setupReportEditor(event.target.value, window.stats_ui.state.currentTeam, window.stats_ui.state.currentOpponent);
                 reportEditor.content.querySelectorAll('input[type="button"]').forEach(el => {
-                    el.addEventListener('click', async event => {
-                        if (event.target.dataset.prop == 'add') {
-                            let stat;
-                            // save stat
-                            if (parseInt(event.target.dataset.stat_id) > 0) {
-                                // update
-                                stat = await post(`/stats/${stat_id}`, {
-                                    type: 'update',
-                                    data: {
-                                        name: event.target.dataset.type,
-                                        value: event.target.dataset.value,
-                                        player_id: event.target.dataset.player_id,
-                                        report_id: event.target.dataset.report_id
-                                    }
-                                });
-                            } else {
-                                // create
-                                stat = await post('/stats', {
-                                    type: 'add',
-                                    data: {
-                                        name: event.target.dataset.type,
-                                        value: event.target.dataset.value,
-                                        player_id: event.target.dataset.player_id,
-                                        report_id: event.target.dataset.report_id
-                                    }
-                                });
-                            }
-                            // render stat
-                            const newStatView = setupStatView({
-                                stat_id: event.target.dataset.stat_id,
-                                type: event.target.dataset.type,
-                                value: event.target.dataset.value,
-                                player_id: event.target.dataset.player_id,
-                                report_id: event.target.dataset.report_id
-                            });
-
-                            attach('replace', `div[data-stat_id="${event.target.dataset.stat_id}"]`, newStatView);
-                        } else if (event.target.dataset.prop == 'edit') {
-                            // make stat editable
-                            const newStatEditor = setupStatView({
-                                stat_id: event.target.dataset.stat_id,
-                                type: event.target.dataset.type,
-                                value: event.target.dataset.value,
-                                player_id: event.target.dataset.player_id,
-                                report_id: event.target.dataset.report_id
-                            }, true);
-
-                            attach('replace', `div[data-stat_id="${event.target.dataset.stat_id}"]`, newStatEditor);
-                        } else if (event.target.dataset.prop == 'submit') {
-                            // submit full report 
-                            const report = await post(`/reports/${report_id}`, {
-                                type: 'publish',
-                                data: {
-                                    published: true
-                                }
-                            });
-                        }
-                    });
+                    el.addEventListener('click', handleStatClick);
                 });
 
                 attach('replace', '#interactive', reportEditor);
@@ -366,6 +315,9 @@ function handleRouting(event) {
                     // render chosen team
                     console.log(window.stats_ui.state);
                     const newReportEditor = await setupReportEditor('new', window.stats_ui.state.currentTeam.team_id, window.stats_ui.state.currentOpponent);
+                    newReportEditor.content.querySelectorAll('input[type="button"]').forEach(el => {
+                        el.addEventListener('click', handleStatClick);
+                    });
                     attach('replace', '#interactive', newReportEditor);
                 });
                 attach('add-after', '#interactive .v-row', opponentPicker);
@@ -414,6 +366,66 @@ function handleRouting(event) {
 
 function handleInteraction(event) {
 
+}
+
+async function handleStatClick(event) {
+    console.log(event);
+    console.log(event.target.dataset.stat_id);
+
+    console.log(Array.from(document.querySelectorAll(`div.v-row`)));
+    const currentStat = (Array.from(document.querySelectorAll(`div.v-row`))).filter(el => {
+        console.log(el.dataset.stat_id);
+        console.log(event.target.dataset.stat_id);
+        return el.dataset.stat_id == event.target.dataset.stat_id
+    })[0];
+
+    if (event.target.dataset.prop == 'update') {
+        let stat;
+        // save stat
+        if (parseInt(event.target.dataset.stat_id) > 0) {
+            // update
+            stat = await post(`stats/${event.target.dataset.stat_id}`, {
+                type: 'update',
+                data: {
+                    name: event.target.dataset.type,
+                    value: parseInt(event.target.dataset.value),
+                    player_id: parseInt(event.target.dataset.player_id),
+                    report_id: parseInt(event.target.dataset.report_id)
+                }
+            });
+        }
+        // render stat
+        const newStatView = await setupStatView({
+            stat_id: parseInt(event.target.dataset.stat_id),
+            type: event.target.dataset.type,
+            value: parseInt(event.target.dataset.value),
+            player_id: parseInt(event.target.dataset.player_id),
+            report_id: parseInt(event.target.dataset.report_id)
+        });
+
+        console.log('c', currentStat);
+
+        attach('replace', currentStat, newStatView);
+    } else if (event.target.dataset.prop == 'edit') {
+        // make stat editable
+        const newStatEditor = await setupStatView({
+            stat_id: parseInt(event.target.dataset.stat_id),
+            type: event.target.dataset.type,
+            value: parseInt(event.target.dataset.value),
+            player_id: parseInt(event.target.dataset.player_id),
+            report_id: parseInt(event.target.dataset.report_id)
+        }, true);
+
+        attach('replace', currentStat, newStatEditor);
+    } else if (event.target.dataset.prop == 'submit') {
+        // submit full report 
+        const report = await post(`/reports/${report_id}`, {
+            type: 'publish',
+            data: {
+                published: true
+            }
+        });
+    }
 }
 
 function setupSeasonPicker() {
@@ -473,10 +485,10 @@ function setupReportPicker(user, team_id) {
 }
 
 function setupPlayerOption(player) {
-    const newPlayerOption = window.templates['blank_option'].cloneNode(true);
-    const newOption = newPlayerOption.content.querySelector('option');
-    newOption.value = player.player_id;
-    newOption.label = player.name;
+    const newPlayerOption = window.templates['blank_option'].cloneNode(true).content.querySelector('option');
+    newPlayerOption.value = player.player_id;
+    newPlayerOption.label = player.name;
+    return newPlayerOption;
 }
 
 async function setupReportEditor(report_id, team_id, opponent_id) {
@@ -485,56 +497,77 @@ async function setupReportEditor(report_id, team_id, opponent_id) {
         // populate report
         const stats = window.stats_cache.stats.filter(el => el.report_id == report_id);
 
-        stats.forEach(stat => {
-            const statView = setupStatView(stat);
+        stats.forEach(async stat => {
+            const statView = await setupStatView(stat);
             newReportEditor.content.querySelector('.v-table').insertBefore(statView, newReportEditor.content.querySelector('input.v-row[type="button"]'));
         });
     } else {
-        const { report_id } = await post(`reports`, {
+        const { report_id } = (await post(`reports`, {
             type: 'add',
             data: {
                 user_id: window.stats_ui.state.currentUser.user_id,
                 team_id: window.stats_ui.state.currentTeam,
                 opponent_id: window.stats_ui.state.currentOpponent
             }
-        });
-        const statView = setupStatView({
+        }))[0];
+
+        // make stat
+        const stat_id = (await post('stats', {
+            type: 'create',
+            data: {
+                report_id
+            }
+        }))[0].id;
+
+        const statView = await setupStatView({
             type: 0,
             value: 0,
             player_id: 0,
             report_id,
-            stat_id: 0
+            stat_id
         }, true);
         const newStatPlayerSelect = statView.content.querySelector('select[data-prop="player"]');
-        const players = window.stats_cache.players.filter(el => el.team_id == team_id);
+        const players = window.stats_cache.players.filter(el => el.team_id == window.stats_ui.state.currentTeam);
 
         players.forEach(player => {
             const newPlayerSelection = setupPlayerOption(player);
+            console.log(newPlayerSelection)
             newStatPlayerSelect.appendChild(newPlayerSelection);
         });
 
-        newReportEditor.content.querySelector('.v-table').insertBefore(statView, newReportEditor.content.querySelector('input.v-row[type="button"]'));
+        newReportEditor.content.querySelector('.v-table').insertBefore(statView.content, newReportEditor.content.querySelector('input.v-row[type="button"]'));
     }
 
     return newReportEditor;
 }
 
 function enableStatSubmission(submittor) {
-    if (submittor.dataset.value != 0 && submittor.dataset.player_id != 0 && submittor.dataset.type != 0) {
+    if (submittor.dataset.stat_id > 0) {
+        submittor.dataset.prop = 'update';
+    }
+    if (submittor.dataset.value !== 0 && submittor.dataset.player_id !== 0 && submittor.dataset.type !== 0) {
         submittor.disabled = false;
     } else {
         submittor.disabled = true;
     }
 }
 
-function setupStatView(data, editable = false) {
-    const { stat_id, type, value, player_id, report_id } = data;
-    let newStat;
+async function setupStatView(data, editable = false) {
+    let { stat_id, type, value, player_id, report_id } = data;
+    if (stat_id == 0) {
+        stat_id = (await post('stats', {
+            type: 'create',
+            data: {
+                report_id
+            }
+        }))[0].id;
+    }
+    let newStat, newStatSubmittor;
     if (editable) {
         newStat = window.templates['stat_edit'].cloneNode(true);
-        const newStatSubmittor = newStat.content.querySelector('input[type="button"]');
+        newStat.content.querySelector('.v-row').dataset.stat_id = stat_id;
+        newStatSubmittor = newStat.content.querySelector('input[type="button"]');
         
-        newStatSubmittor.dataset.stat_id = stat_id;
         newStatSubmittor.dataset.report_id = report_id;
 
         // add change handlers
@@ -552,21 +585,23 @@ function setupStatView(data, editable = false) {
         });
     } else {
         newStat = window.templates['stat_view'].cloneNode(true);
-        const newStatSubmittor = newStat.content.querySelector('input[type="button"]');
+        newStat.content.querySelector('.v-row').dataset.stat_id = stat_id;
+        newStatSubmittor = newStat.content.querySelector('input[type="button"]');
         newStatSubmittor.dataset = {
             type,
             value,
             player_id,
-            report_id,
-            stat_id
+            report_id
         };
 
         newStat.content.querySelector('div[data-prop="type"]').innerText = type;
         newStat.content.querySelector('div[data-prop="value"]').innerText = value;
         newStat.content.querySelector('div[data-prop="player"]').innerText = player_id;
     }
+    console.log('nss',newStatSubmittor);
+    newStatSubmittor.dataset.stat_id = stat_id;
 
-    console.log(newStat);
+    newStatSubmittor.addEventListener('click', handleStatClick);
 
     return newStat;
 }
