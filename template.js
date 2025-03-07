@@ -355,7 +355,7 @@ function handleInteraction(event) {
 }
 
 async function handleStatClick(event) {
-    enableStatSubmission(event.target);
+    // enableStatSubmission(event.target);
     enableSubmit();
 
     const currentStat = (Array.from(document.querySelectorAll(`div.v-row`))).filter(el => el.dataset.stat_id == event.target.dataset.stat_id)[0];
@@ -380,6 +380,14 @@ async function handleStatClick(event) {
             player_id: parseInt(event.target.dataset.player_id),
             report_id: parseInt(event.target.dataset.report_id)
         });
+
+        // const newBlankStat = await generateNewStat(event.target.dataset.report_id);
+        // document.querySelector('#interactive .v-table').insertBefore(newBlankStat.content, document.querySelector('#interactive input.v-row[type="button"]'));
+
+        if ((document.querySelectorAll(`input[type="button"][value="Add"]`).length < 1)) {
+            const newBlankStat = await generateNewStat(event.target.dataset.report_id);
+            document.querySelector('#interactive .v-table').insertBefore(newBlankStat.content, document.querySelector('#interactive input.v-row[type="button"]'));
+        }
 
         attach('replace', currentStat, newStatView);
     } else if (event.target.dataset.prop == 'edit') {
@@ -625,11 +633,6 @@ async function setupStatView(data, editable = false, initial = false) {
         newStat.content.querySelector('div[data-prop="type"]').innerText = type;
         newStat.content.querySelector('div[data-prop="value"]').innerText = value;
         newStat.content.querySelector('div[data-prop="player"]').innerText = player_id;
-
-        if (!(document.querySelectorAll(`input[type="button"][value="Add"]`).length < 1) || initial) {
-            const newBlankStat = await generateNewStat(report_id);
-            document.querySelector('#interactive .v-table').insertBefore(newBlankStat.content, document.querySelector('#interactive input.v-row[type="button"]'));
-        }
     }
     console.log((document.querySelectorAll(`input[type="button"][value="Add"]`).length < 1));
 
