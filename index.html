@@ -10,15 +10,28 @@
             color: black;
         }
 
-        header, section {
+        body {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 5px;
+            background: lightblue;
+        }
+
+
+        section {
             width: 100%;
             display: flex;
             justify-content: space-around;
-            margin-bottom: 25px;
+            margin-bottom: 0px;
         }
 
-        #controls section {
+        #controllers section {
             margin-bottom: 0px;
+        }
+
+        #controls {
+            width: 80%;
+            padding: 10%;
         }
 
         #summary {
@@ -121,108 +134,20 @@
     </style>
 </head>
 <body>
+    <!-- MAIN -->
     <header>
         <h1>NYGFL Stats Interface</h1>
-        <section id="login" class="toolbar v-row"></section>
+        <section class="toolbar v-row">
+            <section id="controllers" class="v-row"></section>
+            <section id="login" class="v-row"></section>
+        </section>
+        <section id="controls" class="v-row"></section>
     </header>
-
-    <section id="controls" class="v-table">
-        <section id="admin_controller"></section>
-        <section id="captain_controller"></section>
-        <section id="player_controller"></section>
-    </section>
-
     <section id="interactive" class="v-table"></section>
 
-    <!-- <section id="player" class="v-table">
-        <div class="v-row v-table-header">
-            <div class="v-item" data-prop="name">name</div>
-            <div class="v-item hidden" data-prop="player_id">player_id</div>
-            <div class="v-item hidden" data-prop="user_id">user_id</div>
-            <div class="v-item" data-prop="created">created</div>
-            <div class="v-item" data-prop="team">team</div>
-        </div>
-        <div class="edit-interface v-row"></div>
-    </section>
-    <section id="user" class="v-table">
-        <div class="v-row v-table-header">
-            <div class="v-item hidden" data-prop="user_id">user_id</div>
-            <div class="v-item" data-prop="name">name</div>
-            <div class="v-item" data-prop="email">email</div>
-            <div class="v-item" data-prop="phone">phone</div>
-            <div class="v-item hidden" data-prop="createdAt">createdAt</div>
-        </div>
-        <div class="edit-interface v-row"></div>
-    </section>
-    <section id="team" class="v-table">
-        <div class="v-row v-table-header">
-            <div class="v-item" data-prop="team_name">team_name</div>
-            <div class="v-item" data-prop="captain">captain</div>
-            <div class="v-item" data-prop="season">season</div>
-            <div class="v-item hidden" data-prop="createdAt">createdAt</div>
-            <div class="v-item" data-prop="players">players</div>
-            <div class="v-item hidden" data-prop="team_id">team_id</div>
-        </div>
-        <div class="edit-interface v-row"></div>
-    </section>
-    <section id="season" class="v-table">
-        <div class="v-row v-table-header">
-            <div class="v-item" data-prop="season_name">season_name</div>
-            <div class="v-item" data-prop="season_teams">season_teams</div>
-            <div class="v-item" data-prop="created">created</div>
-            <div class="v-item" data-prop="season_id">season_id</div>
-        </div>
-        <div class="edit-interface v-row"></div>
-    </section>
-    <section id="stat" class="v-table">
-        <div class="v-row v-table-header">
-            <div class="v-item" data-prop="stat_name">stat_name</div>
-            <div class="v-item" data-prop="stat_value">stat_value</div>
-            <div class="v-item" data-prop="player">player</div>
-            <div class="v-item hidden" data-prop="report">report</div>
-            <div class="v-item" data-prop="created">created</div>
-            <div class="v-item" data-prop="stat_id">stat_id</div>
-        </div>
-        <div class="edit-interface v-row">
-            <select name="type" id="stat_type">
-                <option value="type" selected disabled>Stat Type</option>
-                <option value="pass_td">Pass TD</option>
-                <option value="rush_td">Rushing TD</option>
-                <option value="rec_td">Receiving TD</option>
-                <option value="interception">Interception</option>
-                <option value="sack">Sack</option>
-            </select>
-            <input placeholder="#" type="number" name="number" min="0" id="stat_count">
-            <select name="player" id="stat_player">
-                <option value="player" selected disabled>--</option>
-            </select>
-            <input type="button" value="Add" id="stat_add" disabled>
-        </div>
-    </section>
-    <section id="report" class="v-table">
-        <div class="v-row v-table-header">
-            <div class="v-item" data-prop="report_id">report_id</div>
-            <div class="v-item" data-prop="user_id">user_id</div>
-            <div class="v-item" data-prop="created">created</div>
-            <div class="v-item" data-prop="stats">stats</div>
-        </div>
-        <div class="edit-interface v-row"></div>
-    </section> -->
 
-    <!-- end body templates -->
 
-    <!-- <section id="summary">
-        <div class="row">
-            <div>Type</div>
-            <div>Count</div>
-            <div>Player</div>
-        </div>
-    </section> -->
-
-    <!-- <input type="text" name="req_type" id="req_type">
-    <input type="text" name="req_path" id="req_path">
-    <textarea name="req_body" id="req_body" cols="30" rows="10"></textarea>
-    <input type="button" value="Send Request" id="req_send"> -->
+    <!-- TEMPLATES -->
     <template data-name="season_picker">
         <div class="v-row">
             <label class="v-item" for="season">Pick a season: </label>
@@ -231,6 +156,39 @@
             </select>
         </div>
     </template>
+    <template data-name="permission_controllers">
+        <div class="controller_set">
+            <input type="button" class="tab" id="admin_controller" value="Admin" hidden>
+            <input type="button" class="tab" id="captain_controller" value="Captain" hidden>
+            <input type="button" class="tab" id="player_controller" value="Player">
+        </div>
+    </template>
+    <template data-name="captain_control">
+        <div class="control_set">
+            <div class="v-row">
+                <input type="button" class="v-item" data-action="edit_report" value="Edit Stat Report"/>
+                <input type="button" class="v-item" data-action="create_report" value="Create Report"/>
+            </div>
+        </div>
+    </template>
+    <template data-name="admin_control">
+        <div class="control_set">
+            <div class="v-row">
+                <input type="button" class="v-item" data-action="edit_team" value="Edit Team"/>
+                <input type="button" class="v-item" data-action="edit_report" value="Edit Stat Report"/>
+                <input type="button" class="v-item" data-action="create_season" value="Create Season"/>
+            </div>
+        </div>
+    </template>
+    <template data-name="player_control">
+        <div class="control_set">
+            <div class="v-row">
+                <input type="button" class="v-item" data-action="blah" value="Nothing here yet" disabled/>
+                
+            </div>
+        </div>
+    </template>
+
     <template data-name="team_picker">
         <div class="v-row">
             <label class="v-item" for="team">Pick a team: </label>
@@ -313,7 +271,7 @@
             <select class="v-item" data-prop="player">
                 <option value="0" selected disabled>Player Name</option>
             </select>
-            <input type="button" data-prop="create" value="Add" disabled>
+            <input type="button" data-prop="update" value="Add" disabled>
         </div>
     </template>
     <template data-name="stat_view">
@@ -324,8 +282,8 @@
             <input type="button" data-prop="edit" value="Edit">
         </div>
     </template>
-    <template data-name="user_picker"></template>
 
+    <!-- SCRIPTS -->
     <script src="template.js"></script>
     <script src="client.js"></script>
 </body>

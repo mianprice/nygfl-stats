@@ -67,13 +67,20 @@ async function getUncommittedPlayers(season_id) {
 }
 
 async function getReports(id) {
-    const res = await pool.query(`SELECT *, t.name as opponent_name, t.team_id as opponent_id  FROM reports r ${id ? `WHERE report_id = '${id}'` : ''} JOIN teams t on r.opponent_id = t.team_id`);
+    const res = await pool.query(`SELECT *, t.name as opponent_name, t.team_id as opponent_id, r.team_id as team_id  FROM reports r ${id ? `WHERE report_id = '${id}'` : ''} JOIN teams t on r.opponent_id = t.team_id`);
     // console.log(res.rows);
     return res.rows;
 }
 
 async function getStats(id) {
-    const res = await pool.query(`SELECT * FROM stats ${id ? `WHERE stat_id = '${id}'` : ''}`);
+    let res;
+    console.log(id);
+    if (id !== undefined && id.includes('r')) {
+        res = await pool.query(`SELECT * FROM stats ${id ? `WHERE report_id = ${id.replace('r','')};` : ''}`);
+    } else {
+        res = await pool.query(`SELECT * FROM stats ${id ? `WHERE stat_id = ${id}` : ''}`);
+    }
+    
     // console.log(res.rows);
     return res.rows;
 }
@@ -111,9 +118,8 @@ async function addReport(user_id, team_id, opponent_id) {
 
 async function addStats(report_id, stat_id, name, value, player_id) {
     let res;
-    console.log(stat_id);
     if (stat_id !== undefined) {
-        res = await pool.query(`UPDATE stats SET (name, value, report_id, player_id) = ('${name}', ${value}, ${report_id}, ${player_id}) WHERE id = ${stat_id};`);
+        res = await pool.query(`UPDATE stats SET (name, value, report_id, player_id) = ('${name}', ${value}, ${report_id}, ${player_id}) WHERE id = ${stat_id} RETURNING *;`);
     } else {
         res = await pool.query(`INSERT INTO stats (report_id) VALUES (${report_id}) RETURNING id;`);
     }
@@ -245,8 +251,9 @@ server.route('/stats/:id?')
     .get(async (req, res, next) => {
         if (req.params.id) {
             res.json(await getStats(req.params.id));
+        } else {
+            res.json(await getStats());
         }
-        res.json(await getStats());
     })
     .post(async (req, res, next) => {
         console.log(req.body);
