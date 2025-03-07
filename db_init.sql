@@ -39,7 +39,8 @@ CREATE TABLE reports (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 CREATE TABLE publishes (
-    report_id SERIAL PRIMARY KEY,
+    publish_id SERIAL PRIMARY KEY,
+    report_id INTEGER REFERENCES reports,
     stats integer[],
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
