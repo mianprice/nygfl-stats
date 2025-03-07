@@ -378,18 +378,28 @@ async function handleStatClick(event) {
             type: event.target.dataset.type,
             value: parseInt(event.target.dataset.value),
             player_id: parseInt(event.target.dataset.player_id),
-            report_id: parseInt(event.target.dataset.report_id)
+            report_id: parseInt(event.target.dataset.report_id),
+            unsent: false 
         });
 
         // const newBlankStat = await generateNewStat(event.target.dataset.report_id);
         // document.querySelector('#interactive .v-table').insertBefore(newBlankStat.content, document.querySelector('#interactive input.v-row[type="button"]'));
 
-        if ((document.querySelectorAll(`input[type="button"][value="Add"]`).length < 1)) {
+        
+        attach('replace', currentStat, newStatView);
+
+        unsentButtons = document.querySelectorAll(`input[type="button"][data-unsent="true"]`);
+
+        console.log('unsentButtons.length')
+        console.log(unsentButtons.length)
+        console.log(typeof unsentButtons.length)
+        console.log(unsentButtons.length < 1)
+        // console.log(document.querySelectorAll(`input[type="button"]`))
+        if (unsentButtons.length < 3) {
             const newBlankStat = await generateNewStat(event.target.dataset.report_id);
-            document.querySelector('#interactive .v-table').insertBefore(newBlankStat.content, document.querySelector('#interactive input.v-row[type="button"]'));
+            document.querySelector('#interactive .v-table').insertBefore(newBlankStat.content, document.querySelector('#interactive .v-table input.v-row[type="button"]'));
         }
 
-        attach('replace', currentStat, newStatView);
     } else if (event.target.dataset.prop == 'edit') {
         // make stat editable
         const newStatEditor = await setupStatView({
@@ -397,7 +407,8 @@ async function handleStatClick(event) {
             type: event.target.dataset.type,
             value: parseInt(event.target.dataset.value),
             player_id: parseInt(event.target.dataset.player_id),
-            report_id: parseInt(event.target.dataset.report_id)
+            report_id: parseInt(event.target.dataset.report_id),
+            unsent: false
         }, true);
 
         enableStatSubmission(currentStat.querySelector('input[type="button"]'));
@@ -522,7 +533,8 @@ async function setupReportEditor(report_id, team_id, opponent_id) {
             const statView = await setupStatView({
                 ...stat,
                 stat_id: stat.id,
-                type: stat.name
+                type: stat.name,
+                unsent: false
             }, false, true);
             newReportEditor.content.querySelector('.v-table').insertBefore(statView.content, newReportEditor.content.querySelector('input.v-row[type="button"]'));
         });
@@ -559,7 +571,8 @@ async function generateNewStat(report_id) {
         value: 0,
         player_id: 0,
         report_id,
-        stat_id
+        stat_id,
+        unsent: true
     }, true);
 }
 
@@ -573,7 +586,7 @@ function enableStatSubmission(submittor) {
     }
 }
 
-async function setupStatView(data, editable = false, initial = false) {
+async function setupStatView(data, editable = false, initial = false, unsent = true) {
     let { stat_id, type, value, player_id, report_id } = data;
     // console.log(
     //     `
@@ -642,6 +655,7 @@ async function setupStatView(data, editable = false, initial = false) {
     newStatSubmittor.dataset.value = value || '';
     newStatSubmittor.dataset.player_id = player_id || '';
     newStatSubmittor.dataset.report_id = report_id || '';
+    newStatSubmittor.dataset.unsent = unsent;
     
     newStatSubmittor.dataset.stat_id = stat_id;
 
