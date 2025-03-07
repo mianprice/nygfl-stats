@@ -120,14 +120,17 @@ function renderIntoTable(data) {
             selector = `#${data.view}`;
             if (localStorage.getItem('logged_in') === 'true') {
                 newHTML = `
-                    <input class="v-item" type="button" value="Home" id="home_button">
-                    <div class="v-item" id="username">${JSON.parse(localStorage.current_user).name}</div>
-                    <input class="v-item" type="button" value="Logout" id="logout_button">
+                    <div id="login_set">
+                        <input class="v-item" type="button" value="Home" id="home_button">
+                        <input class="v-item" type="button" value="Logout" id="logout_button">
+                    </div>
                 `;
             } else {
                 newHTML = `
-                    <input class="v-item" type="email" name="email" id="login_email">
-                    <input class="v-item" type="button" value="Login" id="login_button">
+                    <div id="login_set">
+                        <input class="v-item" type="email" name="email" id="login_email">
+                        <input class="v-item" type="button" value="Login" id="login_button">
+                    </div>
                 `;
             }   
             
@@ -208,21 +211,23 @@ function renderLogin() {
     }
 
     renderMain();
+
+    document.querySelector('#home_button').addEventListener('click', renderMain);
 };
 
 
 function renderMain() {
     if (localStorage.getItem('logged_in') === 'true') {
-        const user = JSON.parse(localStorage.getItem('current_user'));
-
-        const controls = setupControls(user.permissions);
+        const controls = setupControls();
 
         attach('replace', '#controllers', controls);
     }
     
 }
 
-function setupControls(permissions) {
+function setupControls() {
+    document.querySelector('#controls').innerHTML = '';
+    const permissions = (JSON.parse(localStorage.getItem('current_user'))).permissions;
 
     const newControllers = window.templates['permission_controllers'].cloneNode(true);
 
@@ -231,7 +236,14 @@ function setupControls(permissions) {
         const controller = newControllers.content.querySelector(`#${permission.toLowerCase()}_controller`);
         controller.hidden = false;
         controller.addEventListener('click', event => {
-            console.log(event.target);
+            const list = event.target.parentElement.childNodes;
+            for (var i = list.length - 1; i--; i > -1) {
+                if ((list[i].id ? list[i].id : 0) !== event.target.id) {
+                    event.target.parentElement.removeChild(list[i]);
+                } else {
+                    event.target.disabled = true;
+                }
+            }
     
             const permission = event.target.value.toLowerCase();
             const newControls = window.templates[`${permission}_control`].cloneNode(true);
@@ -289,11 +301,11 @@ function handleRouting(event) {
                 window.stats_ui.state.currentTeam = (await get(`players/u${window.stats_ui.state.currentUser.user_id}/${window.stats_ui.state.currentSeason}`))[0].team_id;
                 event.target.disabled = true;
                 // choose team
-                const opponentPicker = setupTeamPicker(event.target.value);
+                const opponentPicker = setupTeamPicker(event.target.value, true);
                 opponentPicker.content.querySelector('select').addEventListener('change', async event => {
                     window.stats_ui.state.currentOpponent = event.target.value;
                     // render chosen team
-                    const newReportEditor = await setupReportEditor('new', window.stats_ui.state.currentTeam.team_id, window.stats_ui.state.currentOpponent);
+                    const newReportEditor = await setupReportEditor('new', window.stats_ui.state.currentTeam, window.stats_ui.state.currentOpponent);
                     newReportEditor.content.querySelectorAll('input[type="button"]').forEach(el => {
                         el.addEventListener('click', handleStatClick);
                     });
@@ -384,11 +396,15 @@ async function handleStatClick(event) {
 
         attach('replace', currentStat, newStatEditor);
     } else if (event.target.dataset.prop == 'submit') {
+        const current_stats = Array.from(document.querySelectorAll('.v-row[data-stat_id]')).map(el => parseInt(el.dataset.stat_id)); 
         // submit full report 
+        console.log('current_stats');
+        console.log(current_stats);
         const report = await post(`reports/${event.target.dataset.report_id}`, {
             type: 'publish',
             data: {
-                published: true
+                published: true,
+                current_stats
             }
         });
     }
@@ -420,11 +436,14 @@ function setupSeasonPicker() {
     return newSeasonPicker;
 }
 
-function setupTeamPicker(season_id) {
+function setupTeamPicker(season_id, is_opponent = false) {
     window.stats_ui.state.currentSeason = season_id;
     const teams = window.stats_cache.teams.filter(el => el.season_id == season_id);
     const newTeamPicker = window.templates['team_picker'].cloneNode(true);
     const newSelect = newTeamPicker.content.querySelector('select');
+    const newLabel = newTeamPicker.content.querySelector('label');
+
+    newLabel.innerText = is_opponent ? 'Pick an opponent: ' : 'Pick a team: ';
 
     teams.forEach(element => {
         const newOption = window.templates['blank_option'].cloneNode(true).content.querySelector('option');
@@ -488,6 +507,7 @@ async function setupReportEditor(report_id, team_id, opponent_id) {
 
         window.stats_ui.state.currentTeam = team_id;
         window.stats_ui.state.currentOpponent = opponent_id;
+        window.stats_ui.state.stats = stats;
 
         stats.forEach(async stat => {
             console.log(stat);
@@ -499,21 +519,20 @@ async function setupReportEditor(report_id, team_id, opponent_id) {
             newReportEditor.content.querySelector('.v-table').insertBefore(statView.content, newReportEditor.content.querySelector('input.v-row[type="button"]'));
         });
     } else {
-        const { report_id } = (await post(`reports`, {
+        report_id = (await post(`reports`, {
             type: 'add',
             data: {
                 user_id: window.stats_ui.state.currentUser.user_id,
-                team_id: window.stats_ui.state.currentTeam,
-                opponent_id: window.stats_ui.state.currentOpponent
+                team_id,
+                opponent_id
             }
-        }))[0];
-
-        const statView = await generateNewStat(report_id);
-
-        newReportEditor.content.querySelector('input.v-row[data-prop="submit"]').dataset.report_id = report_id;
-    
-        newReportEditor.content.querySelector('.v-table').insertBefore(statView.content, newReportEditor.content.querySelector('input.v-row[type="button"]'));
+        }))[0].report_id;
     }
+    const statView = await generateNewStat(report_id);
+
+    newReportEditor.content.querySelector('input.v-row[data-prop="submit"]').dataset.report_id = report_id;
+
+    newReportEditor.content.querySelector('.v-table').insertBefore(statView.content, newReportEditor.content.querySelector('input.v-row[type="button"]'));
 
     return newReportEditor;
 }
@@ -537,12 +556,12 @@ async function generateNewStat(report_id) {
 }
 
 function enableStatSubmission(submittor) {
-    submittor.disabled = true;
-    if (parseInt(submittor.dataset.value) !== 0 && parseInt(submittor.dataset.player_id) !== 0 && submittor.dataset.type?.length !== 0) {
+    submittor.value = "Add";
+    if (!(parseInt(submittor.dataset.value) !== 0 && parseInt(submittor.dataset.player_id) !== 0 && submittor.dataset.type?.length !== 0)) {
+        submittor.disabled = true;
+    } else {
         submittor.disabled = false;
         submittor.value = "Save";
-    } else {
-        submittor.disabled = true;
     }
 }
 
@@ -567,7 +586,7 @@ async function setupStatView(data, editable = false, initial = false) {
         }))[0].id;
     }
     let newStat, newStatSubmittor;
-    if (editable || (parseInt(value) !== 0 && parseInt(player_id) !== 0 && type?.length !== 0)) {
+    if (editable) {
         newStat = window.templates['stat_edit'].cloneNode(true);
         newStat.content.querySelector('.v-row').dataset.stat_id = stat_id;
         newStatSubmittor = newStat.content.querySelector('input[type="button"]');
@@ -607,12 +626,15 @@ async function setupStatView(data, editable = false, initial = false) {
         newStat.content.querySelector('div[data-prop="value"]').innerText = value;
         newStat.content.querySelector('div[data-prop="player"]').innerText = player_id;
 
-        if (!(document.querySelectorAll(`div.v-row input[type="button"][value="Add"]`).length > 0) || !(document.querySelectorAll(`div.v-row input[type="button"][value="Save"]`).length > 0)) {
+        if (!(document.querySelectorAll(`input[type="button"][value="Add"]`).length < 1) || initial) {
             const newBlankStat = await generateNewStat(report_id);
             document.querySelector('#interactive .v-table').insertBefore(newBlankStat.content, document.querySelector('#interactive input.v-row[type="button"]'));
         }
     }
+    console.log((document.querySelectorAll(`input[type="button"][value="Add"]`).length < 1));
 
+    
+    
     newStatSubmittor.dataset.type = type || '';
     newStatSubmittor.dataset.value = value || '';
     newStatSubmittor.dataset.player_id = player_id || '';

@@ -116,6 +116,12 @@ async function addReport(user_id, team_id, opponent_id) {
     return res.rows;
 }
 
+async function addPublish(report_id, current_stats) {
+    const res = await pool.query(`INSERT INTO publishes (report_id, stats) VALUES (${report_id}, '{${current_stats.toString()}}') RETURNING report_id;`);
+    // console.log(res.rows);
+    return res.rows;
+}
+
 async function addStats(report_id, stat_id, name, value, player_id) {
     let res;
     if (stat_id !== undefined) {
@@ -144,7 +150,9 @@ const mutator = {
     report: addReport,
     stat: addStats,
     season: addSeason,
-    team: addTeam
+    team: addTeam,
+    publish: addPublish
+
 };
 
 const server = express();
@@ -243,7 +251,7 @@ server.route('/reports/:id?')
         if (req.body.type == 'add') {
             res.json(await mutator.report(req.body.data.user_id, req.body.data.team_id, req.body.data.opponent_id));
         } else if (req.body.type == 'publish') {
-            res.json(await mutator.report(req.body.data.user_id, req.body.data.published));
+            res.json(await mutator.publish(req.params.id, req.body.data.current_stats));
         }
     });
 

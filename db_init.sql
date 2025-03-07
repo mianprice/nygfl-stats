@@ -38,6 +38,11 @@ CREATE TABLE reports (
     opponent_id INTEGER REFERENCES teams (team_id),
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
+CREATE TABLE publishes (
+    report_id SERIAL PRIMARY KEY,
+    stats integer[],
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
 CREATE TABLE stats (
     id SERIAL PRIMARY KEY,
     name TEXT,

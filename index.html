@@ -8,43 +8,47 @@
     <style>
         * {
             color: black;
+            font-family: Arial, Helvetica, sans-serif;
         }
 
         body {
             display: flex;
             flex-wrap: wrap;
-            padding: 5px;
+            margin: 0;
+            padding: 0;
             background: lightblue;
         }
 
+        header {
+            margin: 0;
+            width: 100vw;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        header h1 {
+            max-width: 25w;
+            margin-left: 15px;
+        }
 
         section {
-            width: 100%;
+            width: auto;
             display: flex;
             justify-content: space-around;
-            margin-bottom: 0px;
+            margin: 0px;
         }
 
-        #controllers section {
-            margin-bottom: 0px;
-        }
-
-        #controls {
-            width: 80%;
-            padding: 10%;
+        #control_set, #controller_set, #login_set {
+            display: flex;
+            flex-direction: row;
+            /* justify-content: space-between; */
         }
 
         #summary {
             justify-content: center;
             flex-wrap: wrap;
             min-width: 100%;
-        }
-
-        .row {
-            display: flex;
-            width: 75%;
-            margin: 10% 2%;
-            justify-content: space-around;
         }
 
         .summary:first-child {
@@ -55,17 +59,12 @@
 
         .toolbar {
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
             align-items: center;
-            width: 50%;
-            height: 30px;
-            margin-top: 30px;
+            flex-wrap: nowrap;
+            height: 10vh;
+            margin-top: 10px;
             background-color: seagreen;
-        }
-
-        .toolbar button {
-            height: 2rem;
-            width: 30%;
         }
 
         .v-table {
@@ -73,17 +72,13 @@
             flex-wrap: wrap;
             justify-content: space-around;
             flex-direction: vertical;
-            border: 3px green solid;
         }
 
         .v-row {
             display: flex;
             justify-content: space-around;
-            flex-direction: horizontal;
+            flex-direction: row;
             min-height: 5vh;
-            border: 3px red solid;
-            width: 100%;
-            padding: 0 5vw;
         }
 
         .v-table-header {
@@ -97,31 +92,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 5vh;
-            min-width: 10vw;
-            padding: 5px;
-            border: 3px purple solid;
+            /* margin: 3px; */
         }
 
-        #login {
-            
+        /* #login, #controllers {
             justify-content: right;
-        }
+        } */
 
-        #login .v-item {
-            min-height: 2vh;
-            margin: 0 1vw;
-        }
-        
         .edit-interface {
             min-height: 5vh;
             border: 3px solid coral;
-        }
-
-        .link {
-            border: 3px blue solid;
-            border-radius: 10%;
-            cursor: pointer;
         }
 
         .link:hover {
@@ -131,17 +111,40 @@
         .hidden {
             display: none;
         }
+
+        input[type="button"] {
+            border-radius: 15px;
+            font-weight: 900;
+        }
+
+        .toolbar-interactions {
+            display: flex;
+            justify-content: space-around;
+            padding: 5px 0;
+        }
+
+        .toolbar-interactions section {
+            padding: 5px;
+        }
+
+        .toolbar-title {
+            width: auto;
+            display: flex;
+            justify-content: flex-end;
+        }
     </style>
 </head>
 <body>
     <!-- MAIN -->
-    <header>
-        <h1>NYGFL Stats Interface</h1>
-        <section class="toolbar v-row">
+    <header class="toolbar">
+        <div class="toolbar-title">
+            <h1>Stat Tracker</h1>
+        </div>
+        <div class="toolbar-interactions">
+            <section id="controls" class="v-row"></section>
             <section id="controllers" class="v-row"></section>
             <section id="login" class="v-row"></section>
-        </section>
-        <section id="controls" class="v-row"></section>
+        </div>
     </header>
     <section id="interactive" class="v-table"></section>
 
@@ -157,41 +160,34 @@
         </div>
     </template>
     <template data-name="permission_controllers">
-        <div class="controller_set">
-            <input type="button" class="tab" id="admin_controller" value="Admin" hidden>
-            <input type="button" class="tab" id="captain_controller" value="Captain" hidden>
-            <input type="button" class="tab" id="player_controller" value="Player">
+        <div id="controller_set">
+            <input type="button" class="v-item" id="admin_controller" value="Admin" hidden>
+            <input type="button" class="v-item" id="captain_controller" value="Captain" hidden>
+            <input type="button" class="v-item" id="player_controller" value="Player">
         </div>
     </template>
     <template data-name="captain_control">
-        <div class="control_set">
-            <div class="v-row">
-                <input type="button" class="v-item" data-action="edit_report" value="Edit Stat Report"/>
-                <input type="button" class="v-item" data-action="create_report" value="Create Report"/>
-            </div>
+        <div id="control_set">
+            <input type="button" class="v-item" data-action="edit_report" value="Edit Stat Report"/>
+            <input type="button" class="v-item" data-action="create_report" value="Create Report"/>
         </div>
     </template>
     <template data-name="admin_control">
-        <div class="control_set">
-            <div class="v-row">
-                <input type="button" class="v-item" data-action="edit_team" value="Edit Team"/>
-                <input type="button" class="v-item" data-action="edit_report" value="Edit Stat Report"/>
-                <input type="button" class="v-item" data-action="create_season" value="Create Season"/>
-            </div>
+        <div id="control_set">
+            <input type="button" class="v-item" data-action="edit_team" value="Edit Team"/>
+            <input type="button" class="v-item" data-action="edit_report" value="Edit Stat Report"/>
+            <input type="button" class="v-item" data-action="create_season" value="Create Season"/>
         </div>
     </template>
     <template data-name="player_control">
         <div class="control_set">
-            <div class="v-row">
-                <input type="button" class="v-item" data-action="blah" value="Nothing here yet" disabled/>
-                
-            </div>
+            <input type="button" class="v-item" data-action="blah" value="Nothing here yet" disabled/>
         </div>
     </template>
 
     <template data-name="team_picker">
         <div class="v-row">
-            <label class="v-item" for="team">Pick a team: </label>
+            <label class="v-item" for="team"></label>
             <select class="v-item" name="team">
                 <option value="default" selected disabled>Team</option>
             </select>
