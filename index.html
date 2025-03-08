@@ -25,11 +25,14 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
+            height: 10vh;
         }
 
         header h1 {
             max-width: 25w;
             margin-left: 15px;
+            max-height: 10vh;
+            align-self: center;
         }
 
         section {
@@ -63,7 +66,6 @@
             align-items: center;
             flex-wrap: nowrap;
             height: 10vh;
-            margin-top: 10px;
             background-color: seagreen;
         }
 
@@ -93,7 +95,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            /* margin: 3px; */
+            min-height: 2rem;
+            align-self: center;
+        }
+
+        #control_set .v-item {
+            height: 100%;
         }
 
         /* #login, #controllers {
@@ -114,18 +121,18 @@
         }
 
         input[type="button"] {
-            border-radius: 15px;
+            /* border-radius: 15px; */
             font-weight: 900;
         }
 
         .toolbar-interactions {
             display: flex;
             justify-content: space-around;
-            padding: 5px 0;
+            /* padding: 5px 0; */
         }
 
         .toolbar-interactions section {
-            padding: 5px;
+            padding: 0 5px;
         }
 
         .toolbar-title {
@@ -158,6 +165,13 @@
             <select class="v-item" name="season">
                 <option value="default" selected disabled>Season</option>
             </select>
+        </div>
+    </template>
+    <template data-name="season_creator">
+        <div class="v-row">
+            <label class="v-item" for="season">Create a season: </label>
+            <textarea name="season" id="season_input" cols="30" rows="10"></textarea>
+            <input type="button" class="v-item" id="season_submittor" value="Save Season">
         </div>
     </template>
     <template data-name="permission_controllers">
@@ -277,6 +291,18 @@
             <div class="v-item" data-prop="value"></div>
             <div class="v-item" data-prop="player"></div>
             <input type="button" data-prop="edit" value="Edit">
+        </div>
+    </template>
+    <template data-name="logged_in">
+        <div id="login_set">
+            <input class="v-item" type="button" value="Home" id="home_button">
+            <input class="v-item" type="button" value="Logout" id="logout_button">
+        </div>
+    </template>
+    <template data-name="logged_out">
+        <div id="login_set">
+            <input class="v-item" type="email" name="email" id="login_email">
+            <input class="v-item" type="button" value="Login" id="login_button">
         </div>
     </template>
 
