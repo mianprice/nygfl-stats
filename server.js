@@ -2,16 +2,36 @@ const pg = require('pg');
 const express = require('express');
 const path = require('node:path');
 const bodyParser = require('body-parser');
-const { Console } = require('node:console');
+
+const { Connector } = require('@google-cloud/cloud-sql-connector');
+const { Pool } = pg;
+
+let pool;
+
+if (process.env.ENVIRONMENT == 'prod') {
+    const connector = new Connector();
+    const clientOpts = await connector.getOptions({
+        instanceConnectionName: process.env.INSTANCE_CONNECTION_NAME,
+        authType: 'IAM'
+    });
+
+    pool = new Pool({
+        ...clientOpts,
+        user: process.env.DB_USER,
+        database: process.env.DB_NAME
+    });
+
+} else {
+    pool = new pg.Pool({
+        user: 'iprice',
+        host: 'localhost',
+        database: 'league_stats',
+        password: '',
+        port: 5432, // Default PostgreSQL port
+    });
+}
 
 
-const pool = new pg.Pool({
-    user: 'iprice',
-    host: 'localhost',
-    database: 'league_stats',
-    password: '',
-    port: 5432, // Default PostgreSQL port
-});
 
 async function getUsers(args = {}) {
     let q = 'SELECT * FROM users';
