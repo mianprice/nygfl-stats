@@ -4,7 +4,6 @@ CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     email TEXT UNIQUE,
-    phone TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 CREATE TABLE permissions (

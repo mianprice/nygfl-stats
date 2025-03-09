@@ -2,6 +2,7 @@ window.stats_ui = {};
 
 const initialState = {
     currentSeason: null,
+    currentSeasonName: null,
     currentTeam: null,
     currentOpponent: null,
     currentUser: null
@@ -112,18 +113,19 @@ function renderMain() {
 
         attach('replace', '#controllers', controls);
     } else {
-        resetControls()
+        reset('controls');
+        reset('interactive');
+        reset('controllers');
     }
     
 }
 
-function resetControls() {
-    attach('replace', '#controllers', document.createElement('template'));
-    attach('replace', '#controls', document.createElement('template'));
+function reset(id) {
+    attach('replace', `#${id}`, document.createElement('template'));
 }
 
 function setupControls() {
-    resetControls()
+    reset('controls')
     const permissions = (JSON.parse(localStorage.getItem('current_user'))).permissions;
 
     const newControllers = window.templates['permission_controllers'].cloneNode(true);
@@ -217,6 +219,25 @@ function handleRouting(event) {
             attach('replace', '#interactive', newSeasonCreator);
 
             break;
+        case 'edit_season':
+            const seasonEditorPicker = setupSeasonPicker();
+            // choose season from list (by user for captain, by season for admin)
+            seasonEditorPicker.content.querySelector('select').addEventListener('change', async event => {
+                event.target.disabled = true;
+                // render chosen report
+                const seasonEditor = await setupReportEditor(...event.target.value.split(','));
+                seasonEditor.content.querySelectorAll('input[type="button"]').forEach(el => {
+                    el.addEventListener('click', handleStatClick);
+                });
+
+                attach('replace', '#interactive', seasonEditor);
+            });
+            attach('replace', '#interactive', seasonEditorPicker);
+            // allow adding new stats
+
+            // include button with save/view action for confirmation
+
+            break;
         case 'team_summary':
             // summary view of team, for base captain view and team edit confirmation
 
@@ -241,33 +262,93 @@ function handleRouting(event) {
 }
 
 function setupSeasonCreator() {
-
     const seasonCreator = window.templates['season_creator'].cloneNode(true);
-    const seasonInput = seasonCreator.content.querySelector('input[type="button"]');
-
-    seasonInput.addEventListener('click', async event => {
-        // get textarea input
-        const inputData = event.target.parentElement.querySelector('textarea').value;
-        const rows = inputData.split('\n').map(el => el.split('\t'));
-        console.log(rows);
-
-
-        // parse into line by line inputs
-        captains = 'something';
-
-        // parseStuff(inputData); // probs csv parser, reworked
+    const seasonNameSubmittor = seasonCreator.content.querySelector('input[type="button"]');
     
+    seasonNameSubmittor.addEventListener('click', async event => {
+        const season_name = event.target.parentElement.querySelector('input[type="text"]').value;
+        console.log(season_name);
+        const seasonEditor = await setupSeasonEditor('new', { name: season_name });
+
+        attach('replace', '#interactive', seasonEditor);
+    });
+
+    return seasonCreator;
+
+}
+
+async function setupSeasonEditor(type, data) {
+    let season;
+    if (type === 'new') {
+        season = await post('seasons', {
+            type: 'add',
+            data
+        });
+    } else {
+        season = await get(`seasons/${data.id}`);
+    }
+
+    console.log(season);
+
+    const { season_id, name } = season[0];
+    window.stats_ui.state.currentSeason = season_id;
+    window.stats_ui.state.currentSeasonName = name;
+    const seasonEditor = window.templates['season_editor'].cloneNode(true);
+
+    // load season data
+    seasonEditor.content.querySelector('#season_name').innerText = name;
+    const captainUploader = window.templates['captain_uploader'].cloneNode(true);
+    captainUploader.content.querySelector('#captain_list_submittor').addEventListener('click', async event => {
+        // get textarea input
+        const inputData = event.target.parentElement.querySelector('textarea').value;        
         // throw each record into db, throwing error on failure
         try {
-            
+            const teamSummary = await post('teams', {
+                type: 'bulk',
+                data: {
+                    text: inputData,
+                    season_id: season_id
+                }
+            });
 
+            console.log(teamSummary);
+
+            const playerUploader = window.templates['player_uploader'].cloneNode(true);
+            console.log(playerUploader);
+            // WHY IS THIS EMPTY AM I GOING CRAZY
+            playerUploader.content.querySelector('#player_list_submittor').addEventListener('click', async event => {
+                const inputData = event.target.parentElement.querySelector('textarea').value;        
+
+                try {
+                    const playerSummary = await post('players', {
+                        type: 'bulk',
+                        data: {
+                            text: inputData
+                        }
+                    });
+
+                    console.log(playerSummary);
+        
+                } catch (error) {
+                    console.error(error);
+                }
+            });
+
+            console.log(playerUploader);
+            seasonEditor.content.appendChild(playerUploader.content);
 
         } catch (error) {
             console.error(error);
         }
+        
     });
-    return seasonCreator;
 
+    seasonEditor.content.appendChild(captainUploader.content);
+
+
+    console.log(seasonEditor);
+
+    return seasonEditor;
 }
 
 async function handleStatClick(event) {

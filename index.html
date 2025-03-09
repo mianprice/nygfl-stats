@@ -99,8 +99,12 @@
             align-self: center;
         }
 
-        #control_set .v-item {
-            height: 100%;
+        .toolbar .v-item {
+            height: 10vh;
+        }
+
+        .toolbar #login .v-item {
+            height: auto;
         }
 
         /* #login, #controllers {
@@ -167,11 +171,32 @@
             </select>
         </div>
     </template>
+    <template data-name="season_editor">
+        <div class="v-row season-header">
+            <div class="v-item">Season Name:</div>
+            <div class="v-item" id="season_name"></div>
+        </div>
+    </template>
+    <template data-name="captain_uploader">
+        <div class="v-row">
+            <label class="v-item" for="captain_list">Upload captains: </label>
+            <textarea name="captain_list" id="captain_bulk_input"></textarea>
+            <input type="button" class="v-item" id="captain_list_submittor" value="Upload Captains">
+        </div>
+    </template>
+    <template data-name="player_uploader">
+        <div class="v-row">
+            <label class="v-item" for="player_list">Upload captains: </label>
+            <textarea name="player_list" id="player_bulk_input"></textarea>
+            <input type="button" class="v-item" id="player_list_submittor" value="Upload Players">
+        </div>
+    </template>
+
     <template data-name="season_creator">
         <div class="v-row">
-            <label class="v-item" for="season">Create a season: </label>
-            <textarea name="season" id="season_input" cols="30" rows="10"></textarea>
-            <input type="button" class="v-item" id="season_submittor" value="Save Season">
+            <label class="v-item" for="season_name">New Season Name: </label>
+            <input type="text" class="v-item" name="season_name" placeholder="Season">
+            <input type="button" class="v-item" id="season_submittor" value="Create">
         </div>
     </template>
     <template data-name="permission_controllers">
@@ -212,10 +237,14 @@
         <option value=""></option>
     </template>
     <template data-name="team_view">
+        <div class="v-row team-header">
+            <div class="v-item" data-prop="name"></div>
+            <div class="v-item" data-prop="captain"></div>
+            <div class="v-item" data-prop="season"></div>
+        </div>
         <div class="v-table">
             <div class="v-row v-table-header">
                 <div class="v-item">Name</div>
-                <div class="v-item">Phone</div>
                 <div class="v-item">Email</div>
             </div>
         </div>
@@ -258,12 +287,8 @@
         </div>
     </template>
     <template data-name="report_editor">
+        
         <div class="v-table">
-            <div class="v-row v-table-header">
-                <div class="v-item">Stat Type</div>
-                <div class="v-item">Count</div>
-                <div class="v-item">Player</div>
-            </div>
             <input class="v-row" type="button" data-prop='submit' value="Submit Report" disabled>
         </div>
     </template>

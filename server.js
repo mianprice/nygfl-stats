@@ -1,7 +1,8 @@
 const pg = require('pg');
 const express = require('express');
 const path = require('node:path');
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
+const { Console } = require('node:console');
 
 
 const pool = new pg.Pool({
@@ -53,7 +54,6 @@ async function getPlayers(id) {
 }
 
 async function getTeamIDByUserID(user_id, season_id) {
-    
     console.log(`SELECT * FROM players p JOIN teams t ON p.team_id = t.team_id JOIN users u ON p.user_id = u.user_id WHERE (p.user_id = ${user_id} AND t.season_id = ${season_id})`);
     const res = await pool.query(`SELECT * FROM players p JOIN teams t ON p.team_id = t.team_id JOIN users u ON p.user_id = u.user_id WHERE (p.user_id = ${user_id} AND t.season_id = ${season_id})`);
     // console.log(res.rows);
@@ -92,7 +92,7 @@ async function addUser(name, email, phone) {
 }
 
 async function addSeason(name) {
-    const res = await pool.query(`INSERT INTO seasons (name) VALUES ('${name}');`);
+    const res = await pool.query(`INSERT INTO seasons (name) VALUES ('${name}') RETURNING season_id, name;`);
     // console.log(res.rows);
     return res.rows;
 }
@@ -133,6 +133,33 @@ async function addStats(report_id, stat_id, name, value, player_id) {
     return res.rows;
 }
 
+async function addTeamsBulk(data) {
+    let rows = data.text.split('\n').map(row => row.split('\t'));
+    console.log(data);
+    rows.forEach(async row => {
+        console.log(row);
+        const count = await pool.query(`SELECT user_id FROM users WHERE email = '${row[2]}';`);
+        const captain_user_id = count.rowCount === 0 ? (await pool.query(`INSERT INTO users (name, email) VALUES ('${row[1]}', '${row[2]}') RETURNING user_id;`)).rows[0].user_id : count.rows[0].user_id;
+        console.log(count.rows);
+        await pool.query(`INSERT INTO teams (name, captain, season_id) VALUES ('${row[0]}', ${captain_user_id}, ${data.season_id});`);
+    });
+    // console.log(data);
+    return 'successful bulk upload';
+}
+
+async function addPlayersBulk(data) {
+    let rows = data.text.split('\n').split('\t');
+    let res;
+    rows.forEach(async row => {
+        const team_id = await pool.query(`SELECT team_id FROM teams WHERE name = '${row[0]}';`);
+        const count = await pool.query(`SELECT user_id FROM users WHERE email = '${row[2]}';`);
+        const user_id = count.length == 0 ? await pool.query(`INSERT INTO users (name, email) VALUES ('${row[1]}', '${row[2]}') RETURNING user_id;`) : count[0];
+        const res = await pool.query(`INSERT INTO players (user_id, team_id) VALUES ('${user_id}',${data.team_id});`);
+    });
+    // console.log(res.rows);
+    return 'successful bulk upload';
+}
+
 async function generateCache() {
     return await {
         teams: await getTeams(),
@@ -152,7 +179,11 @@ const mutator = {
     season: addSeason,
     team: addTeam,
     publish: addPublish
+};
 
+const bulkMutator = {
+    player: addPlayersBulk,
+    team: addTeamsBulk
 };
 
 const server = express();
@@ -194,6 +225,8 @@ server.route('/teams/:id?')
     .post(async (req, res, next) => {
         if (req.body.type == 'add') {
             res.json(await mutator.team(req.body.data.name, req.body.data.captain, req.body.data.season));
+        } else if (req.body.type == 'bulk') {
+            res.json(await bulkMutator.team(req.body.data));
         }
     });
 
@@ -224,6 +257,8 @@ server.route('/players/:id?/:season_id?')
     .post(async (req, res, next) => {
         if (req.body.type == 'add') {
             res.json(await mutator.player(req.body.data.user_id, req.body.data.team_id));
+        } else if (req.body.type == 'bulk') {
+            res.json(await bulkMutator.player(req.body.data));
         }
     });
 
